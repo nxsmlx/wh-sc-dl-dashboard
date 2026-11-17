@@ -5,14 +5,14 @@
   --font-display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
   --font-mono: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, sans-serif;
 
-  --bg: #071a3d;
-  --bg-raised: #0b2557;
-  --bg-tint: #0a2049;
+  --bg: #06142f;
+  --bg-raised: rgb(15 47 99 / 0.72);
+  --bg-tint: rgb(18 57 116 / 0.46);
   --ink: #f4f6fb;
   --ink-muted: #bccae6;
   --ink-faint: #8aa0cc;
-  --rule: #1d3d7a;
-  --rule-strong: #294b88;
+  --rule: rgb(129 180 255 / 0.22);
+  --rule-strong: rgb(164 205 255 / 0.38);
 
   --accent: #ffc72c;
   --accent-ink: #071a3d;
