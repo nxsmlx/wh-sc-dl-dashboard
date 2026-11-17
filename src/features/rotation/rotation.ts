@@ -52,3 +52,7 @@ export function previousPage(state: RotationState): RotationState {
 export function togglePaused(state: RotationState): RotationState {
   return { ...state, isPaused: !state.isPaused };
 }
+
+export function setPaused(state: RotationState, isPaused: boolean): RotationState {
+  return state.isPaused === isPaused ? state : { ...state, isPaused };
+}

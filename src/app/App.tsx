@@ -45,17 +45,16 @@ export function App({
     }
   }, [remote.forcedPage, rotation.page]);
 
+  // Follow the admin pause only when the admin changes it, so the operator's own
+  // Pause / Resume is not overridden on the next render.
   useEffect(() => {
-    if (!isDetailOpen && remote.paused !== rotation.isPaused) {
-      rotation.togglePause();
-    }
-  }, [isDetailOpen, remote.paused, rotation.isPaused]);
+    rotation.setPaused(remote.paused);
+  }, [remote.paused]);
 
+  // Detail view always holds the page; returning resumes unless the admin paused the board.
   useEffect(() => {
-    if (isDetailOpen && !rotation.isPaused) {
-      rotation.togglePause();
-    }
-  }, [isDetailOpen, rotation.isPaused]);
+    rotation.setPaused(isDetailOpen || remote.paused);
+  }, [isDetailOpen]);
 
   useEffect(() => {
     if (remote.theme && remote.theme !== theme) {

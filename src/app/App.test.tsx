@@ -127,6 +127,38 @@ describe('App wallboard', () => {
     expect(screen.getByText('14,650', { selector: '.kpi-value' })).toBeInTheDocument();
   });
 
+  it('keeps the page when the operator presses Pause', async () => {
+    vi.useFakeTimers();
+    render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(screen.getByRole('heading', { name: 'Shipping check' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Resume' }));
+    await act(async () => {
+      vi.advanceTimersByTime(30_000);
+    });
+    expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument();
+  });
+
+  it('offers a full screen control', async () => {
+    const requestFullscreen = vi.fn(async () => {});
+    document.documentElement.requestFullscreen = requestFullscreen;
+    render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    expect(requestFullscreen).toHaveBeenCalledOnce();
+  });
+
   it('pauses rotation in operations detail and resumes after returning', async () => {
     vi.stubGlobal(
       'fetch',

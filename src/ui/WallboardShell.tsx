@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { Freshness, ThemeName, WallboardPage } from '../data/types';
 import type { RotationState } from '../features/rotation/rotation';
+import { FullscreenToggle } from './FullscreenToggle';
 import { ThemeToggle } from './ThemeToggle';
 import { RotationRail } from './RotationRail';
 
@@ -96,6 +97,7 @@ export function WallboardShell({
             {clock}
           </span>
           <ThemeToggle theme={theme} onChange={onThemeChange} />
+          <FullscreenToggle />
         </div>
       </header>
 

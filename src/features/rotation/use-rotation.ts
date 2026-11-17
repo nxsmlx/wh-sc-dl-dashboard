@@ -6,6 +6,7 @@ import {
   nextPage,
   previousPage,
   selectPage,
+  setPaused,
   togglePaused,
   type RotationState,
 } from './rotation';
@@ -22,6 +23,7 @@ export function useRotation({ durationMs, autoStart = true, initialPage }: UseRo
   next: () => void;
   previous: () => void;
   togglePause: () => void;
+  setPaused: (isPaused: boolean) => void;
   select: (page: WallboardPage) => void;
 } {
   const [state, setState] = useState<RotationState>(
@@ -43,6 +45,7 @@ export function useRotation({ durationMs, autoStart = true, initialPage }: UseRo
     next: () => setState((current) => nextPage(current)),
     previous: () => setState((current) => previousPage(current)),
     togglePause: () => setState((current) => togglePaused(current)),
+    setPaused: (isPaused: boolean) => setState((current) => setPaused(current, isPaused)),
     select: (page: WallboardPage) => setState((current) => selectPage(current, page)),
   };
 }

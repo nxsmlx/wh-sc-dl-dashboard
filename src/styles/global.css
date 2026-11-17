@@ -169,6 +169,29 @@ button {
   border-color: rgb(255 255 255 / 0.4);
 }
 
+.icon-button {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: transparent;
+  color: var(--bar-ink);
+  cursor: pointer;
+}
+
+.icon-button svg {
+  width: 26px;
+  height: 26px;
+}
+
+.icon-button:hover {
+  border-color: rgb(255 255 255 / 0.5);
+  background: rgb(255 255 255 / 0.08);
+}
+
 /* ---------- main area ---------- */
 .wallboard-main {
   min-height: 0;
@@ -196,8 +219,8 @@ button {
   display: grid;
   align-content: center;
   gap: 6px;
-  min-height: 196px;
-  padding: 18px 28px;
+  min-height: 176px;
+  padding: 14px 28px;
   border-right: 1px solid var(--rule);
   border-top: 4px solid var(--rule-strong);
   background: linear-gradient(160deg, var(--surface-strong), var(--surface));
@@ -324,7 +347,7 @@ button {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 30px;
@@ -474,10 +497,11 @@ button {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .bar-row {
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 72px;
   grid-template-areas:
@@ -508,7 +532,7 @@ button {
 
 .bar-track {
   grid-area: track;
-  height: 10px;
+  height: 8px;
   background: var(--rule);
   overflow: hidden;
 }
@@ -589,7 +613,7 @@ button {
 
 .issue-row {
   display: grid;
-  grid-template-columns: 70px 170px 150px minmax(0, 1fr);
+  grid-template-columns: 70px 220px 150px minmax(0, 1fr);
   gap: 16px;
   align-items: baseline;
   padding: 9px 0;
@@ -816,9 +840,12 @@ button {
 
 .notice-banner p {
   margin: 0;
+  overflow: hidden;
   font-size: 30px;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .stale-banner,
