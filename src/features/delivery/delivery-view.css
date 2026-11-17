@@ -1,7 +1,7 @@
 .delivery-view {
   display: flex;
   flex-direction: column;
-  gap: clamp(var(--space-4), 2vw, var(--space-8));
+  gap: 0;
   min-height: 0;
   flex: 1;
   justify-content: space-between;
@@ -9,10 +9,11 @@
 
 .del-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-  gap: clamp(var(--space-8), 7vw, 136px);
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  gap: 0;
   align-items: end;
-  padding: var(--space-6) 0 var(--space-4);
+  padding: 1.1rem 1.75rem .8rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .del-primary {
@@ -32,8 +33,8 @@
   margin: 0;
   display: grid;
   gap: 0;
-  border-left: 1px solid var(--rule-strong);
-  padding-left: clamp(var(--space-4), 2vw, var(--space-8));
+  border-left: 1px solid var(--rule);
+  padding-left: 1.5rem;
 }
 
 .del-figures div {
@@ -57,8 +58,9 @@
 
 .del-figures dd {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -72,16 +74,18 @@
 
 .del-lower {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: clamp(var(--space-6), 3.2vw, 64px);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--rule-strong);
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  gap: 0;
+  padding-top: 0;
+  border-top: 1px solid var(--rule);
   align-items: start;
 }
 
 .del-lower h2 {
-  margin: 0 0 var(--space-3);
-  font-size: 13px;
+  margin: 0 0 .6rem;
+  padding: 0 1.75rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -89,8 +93,8 @@
 }
 
 .del-issues {
-  padding-left: clamp(var(--space-4), 2vw, var(--space-8));
-  border-left: 1px solid var(--rule-strong);
+  padding: 1rem 1.5rem;
+  border-left: 1px solid var(--rule);
 }
 
 .del-issue-count {
@@ -108,7 +112,7 @@
 }
 
 .del-mix {
-  margin-top: var(--space-4);
+  margin: 1rem 1.75rem 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--rule);
   display: grid;

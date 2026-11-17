@@ -1,29 +1,33 @@
 :root {
   color-scheme: dark;
 
-  --font-ui: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-ui: 'Barlow', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
+  --font-mono: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, sans-serif;
 
-  --bg: #0e1214;
-  --bg-raised: #151b1e;
-  --bg-tint: #1a2124;
-  --ink: #eef2f3;
-  --ink-muted: #93a1a6;
-  --ink-faint: #6a797e;
-  --rule: rgb(255 255 255 / 0.1);
-  --rule-strong: rgb(255 255 255 / 0.18);
+  --bg: #071a3d;
+  --bg-raised: #0b2557;
+  --bg-tint: #0a2049;
+  --ink: #f4f6fb;
+  --ink-muted: #bccae6;
+  --ink-faint: #8aa0cc;
+  --rule: #1d3d7a;
+  --rule-strong: #294b88;
 
-  --accent: #d8a75b;
-  --accent-ink: #1a1205;
+  --accent: #ffc72c;
+  --accent-ink: #071a3d;
 
-  --success: #7fb595;
-  --warning: #d9a45b;
-  --danger: #d4776a;
-  --info: #85a9bd;
+  --success: #22c55e;
+  --success-ink: #032611;
+  --warning: #ffb020;
+  --warning-ink: #2b1a00;
+  --danger: #ff5a4f;
+  --danger-ink: #2d0402;
+  --info: #38bdf8;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
 
   --space-1: 4px;
   --space-2: 8px;
