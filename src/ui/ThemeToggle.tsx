@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ThemeName } from '../data/types';
+import { Icon } from './Icon';
 
 const STORAGE_KEY = 'wallboard-theme';
 
@@ -38,11 +39,12 @@ export function ThemeToggle({ theme, onChange }: { theme: ThemeName; onChange: (
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className="icon-button theme-toggle"
       onClick={() => onChange(next)}
       aria-label={`Switch to ${next} theme`}
+      title={`Switch to ${next} theme`}
     >
-      {theme === 'dark' ? 'Light theme' : 'Dark theme'}
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={26} />
     </button>
   );
 }

@@ -10,6 +10,7 @@ import { ShippingView } from '../features/shipping/ShippingView';
 import { OperationsDetail } from '../features/detail/OperationsDetail';
 import { DataState } from '../ui/DataState';
 import { WallboardShell } from '../ui/WallboardShell';
+import { Icon } from '../ui/Icon';
 import { useTheme } from '../ui/ThemeToggle';
 import '../styles/stage.css';
 
@@ -125,21 +126,34 @@ export function App({
       onNext={rotation.next}
       onPrevious={rotation.previous}
       onTogglePause={rotation.togglePause}
+      footerExtra={
+        <>
+          {snapshot.source === 'demo' ? (
+            <p className="demo-banner" role="note">
+              Demo data · run <code>npm run data:import</code>
+            </p>
+          ) : null}
+          {isDetailOpen ? null : (
+            <button type="button" className="detail-link" onClick={() => setIsDetailOpen(true)}>
+              View operations detail
+              <Icon name="arrow" size={22} strokeWidth={2.6} />
+            </button>
+          )}
+        </>
+      }
     >
       {notice ? (
-        <aside className="notice-banner" role="status">
-          <span className="notice-label">Notice</span>
+        <aside className="notice-banner glass" role="status">
+          <span className="notice-label">
+            <Icon name="alert" size={22} strokeWidth={2.6} />
+            Notice
+          </span>
           <p>{notice.text}</p>
         </aside>
       ) : null}
       {freshness === 'stale' ? (
         <p className="stale-banner" role="status">
           Workbook has not been updated since {new Date(snapshot.lastUpdatedAt).toLocaleString('en-GB')}. Figures may be out of date.
-        </p>
-      ) : null}
-      {snapshot.source === 'demo' ? (
-        <p className="demo-banner" role="note">
-          Demo data. Run <code>npm run data:import</code> to load the workbook.
         </p>
       ) : null}
       {isDetailOpen ? (
@@ -151,9 +165,9 @@ export function App({
           }}
         />
       ) : isShipping ? (
-        <ShippingView data={snapshot.shipping} onDetails={() => setIsDetailOpen(true)} />
+        <ShippingView data={snapshot.shipping} />
       ) : (
-        <DeliveryView data={snapshot.delivery} onDetails={() => setIsDetailOpen(true)} />
+        <DeliveryView data={snapshot.delivery} />
       )}
     </WallboardShell>,
   );

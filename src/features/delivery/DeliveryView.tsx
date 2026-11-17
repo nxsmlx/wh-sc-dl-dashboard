@@ -3,15 +3,16 @@ import { getDeliveryAttention } from '../attention/attention';
 import { targetStatus } from '../kpi/kpi-status';
 import { AttentionRail } from '../../ui/AttentionRail';
 import { KpiTile } from '../../ui/KpiTile';
+import { Panel } from '../../ui/Panel';
+import { DonutMix } from '../../ui/charts/DonutMix';
 import { HorizontalBars } from '../../ui/charts/HorizontalBars';
 import { TrendLine } from '../../ui/charts/TrendLine';
 
 const pct = (value: number): string => value.toFixed(1);
 
-export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDetails?: () => void }) {
+export function DeliveryView({ data }: { data: DeliverySnapshot }) {
   const utilization = data.tripTarget > 0 ? (data.tripCount / data.tripTarget) * 100 : 0;
   const sameDayShare = data.totalLineCount > 0 ? (data.sameDayLineCount / data.totalLineCount) * 100 : 0;
-  const mixTotal = Math.max(1, data.mix.sameDay + data.mix.oneDay + data.mix.moreThanOneDay);
   const mixSegments = [
     { key: 'same', label: 'Same day', count: data.mix.sameDay },
     { key: 'one', label: '1 day', count: data.mix.oneDay },
@@ -25,6 +26,7 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
       <h1 className="visually-hidden">Delivery</h1>
       <div className="board-kpi-row">
         <KpiTile
+          icon="clock"
           label={`1-day result · ${month}`}
           value={pct(data.oneDayResultPct)}
           unit="%"
@@ -32,6 +34,7 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
           note={`target ${pct(data.oneDayTargetPct)}%`}
         />
         <KpiTile
+          icon="truck"
           label="Trip utilization"
           value={pct(utilization)}
           unit="%"
@@ -39,12 +42,14 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
           note={`${data.tripCount} / ${data.tripTarget} trips`}
         />
         <KpiTile
+          icon="bolt"
           label="Same-day delivery"
           value={pct(sameDayShare)}
           unit="%"
           note={`${data.sameDayLineCount.toLocaleString('en-GB')} / ${data.totalLineCount.toLocaleString('en-GB')} lines`}
         />
         <KpiTile
+          icon="alert"
           label="Transporter issues"
           value={String(data.transporterIssueCount)}
           status={
@@ -57,99 +62,46 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
       </div>
 
       <div className="board-panels">
-        <section className="board-panel">
-          <h2>
-            1-day result<small>last 6 months</small>
-          </h2>
-          <div className="panel-body">
-            <TrendLine
-              title="1-day result by month"
-              points={data.monthlyTrend}
-              suffix="%"
-              target={data.oneDayTargetPct}
-              formatValue={(value) => value.toFixed(1)}
-            />
-          </div>
-        </section>
-        <section className="board-panel">
-          <h2>
-            Region result<small>target {pct(data.oneDayTargetPct)}%</small>
-          </h2>
-          <div className="panel-body">
-            <HorizontalBars
-              title={`1-day result by region, ${data.monthLabel}`}
-              points={data.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
-              suffix="%"
-              decimals={1}
-              belowIsAlert={data.oneDayTargetPct}
-            />
-          </div>
-        </section>
         <AttentionRail signal={attention} />
-        <section className="board-panel">
-          <h2>
-            Delivery mix<small>{month}</small>
-          </h2>
-          <div className="panel-body">
-            <div
-              className="mix-bar"
-              role="img"
-              aria-label={mixSegments
-                .map((segment) => `${segment.label} ${segment.count} (${((segment.count / mixTotal) * 100).toFixed(1)}%)`)
-                .join(', ')}
-            >
-              {mixSegments.map((segment) => (
-                <span
-                  key={segment.key}
-                  className="mix-segment"
-                  data-segment={segment.key}
-                  style={{ width: `${(segment.count / mixTotal) * 100}%` }}
-                />
-              ))}
-            </div>
-            <ul className="mix-legend">
-              {mixSegments.map((segment) => (
-                <li key={segment.key}>
-                  <span className="mix-dot" data-segment={segment.key} aria-hidden="true" />
-                  <span>{segment.label}</span>
-                  <strong>{segment.count.toLocaleString('en-GB')}</strong>
-                  <span className="mix-pct">{((segment.count / mixTotal) * 100).toFixed(1)}%</span>
+        <Panel icon="chart" title="1-day result" meta="last 6 months" className="panel-trend">
+          <TrendLine
+            title="1-day result by month"
+            points={data.monthlyTrend}
+            suffix="%"
+            target={data.oneDayTargetPct}
+            formatValue={(value) => value.toFixed(1)}
+          />
+        </Panel>
+        <Panel icon="pin" title="Region result" meta={`target ${pct(data.oneDayTargetPct)}%`} className="panel-status">
+          <HorizontalBars
+            title={`1-day result by region, ${data.monthLabel}`}
+            points={data.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
+            suffix="%"
+            decimals={1}
+            belowIsAlert={data.oneDayTargetPct}
+          />
+        </Panel>
+        <Panel icon="pie" title="Delivery mix" meta={month} className="panel-bars">
+          <DonutMix segments={mixSegments} centerLabel="same day" />
+        </Panel>
+        <Panel icon="list" title="Latest transporter cases" meta={`up to ${data.monthLabel}`} className="panel-list">
+          {data.recentTransporterIssues.length > 0 ? (
+            <ul className="issue-list">
+              {data.recentTransporterIssues.slice(0, 4).map((issue) => (
+                <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="case-row">
+                  <time className="issue-date" dateTime={issue.date}>
+                    {issue.date.slice(8)}/{issue.date.slice(5, 7)}
+                  </time>
+                  <span className="issue-zone">{issue.region}</span>
+                  <span className="issue-reason">{issue.issue}</span>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-        <section className="board-panel board-wide">
-          <h2>
-            Latest transporter cases<small>up to {data.monthLabel}</small>
-          </h2>
-          <div className="panel-body">
-            {data.recentTransporterIssues.length > 0 ? (
-              <ul className="issue-list">
-                {data.recentTransporterIssues.map((issue) => (
-                  <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="case-row">
-                    <time className="issue-date" dateTime={issue.date}>
-                      {issue.date.slice(8)}/{issue.date.slice(5, 7)}
-                    </time>
-                    <span className="issue-zone">{issue.region}</span>
-                    <span className="issue-reason">{issue.issue}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="chart-empty">No transporter cases recorded</p>
-            )}
-          </div>
-        </section>
+          ) : (
+            <p className="chart-empty">No transporter cases recorded</p>
+          )}
+        </Panel>
       </div>
-
-      {onDetails ? (
-        <div className="board-actions">
-          <button type="button" className="detail-link" onClick={onDetails}>
-            View operations detail
-          </button>
-        </div>
-      ) : null}
     </section>
   );
 }
