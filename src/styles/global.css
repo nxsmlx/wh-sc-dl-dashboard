@@ -46,7 +46,8 @@ button {
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  padding: var(--space-4) clamp(var(--space-4), 2.2vw, var(--space-8));
+  min-height: 72px;
+  padding: var(--space-4) clamp(var(--space-6), 3.2vw, 64px);
   border-bottom: 1px solid var(--rule);
 }
 
@@ -125,7 +126,7 @@ button {
 }
 
 .wallboard-main {
-  padding: clamp(var(--space-4), 2.4vw, var(--space-8));
+  padding: clamp(var(--space-6), 3vw, 56px) clamp(var(--space-6), 3.2vw, 64px) var(--space-4);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -247,11 +248,15 @@ button {
 .attention-rail {
   display: flex;
   align-items: baseline;
-  gap: var(--space-3);
-  min-height: 42px;
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  gap: var(--space-4);
+  min-height: 78px;
+  margin-left: auto;
+  width: min(760px, 64%);
+  padding: var(--space-3) var(--space-6);
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule-strong);
+  border-left: 4px solid var(--ink-faint);
+  background: var(--bg-tint);
   color: var(--ink-muted);
 }
 
@@ -267,12 +272,24 @@ button {
   background: var(--warning);
 }
 
+.attention-rail[data-tone='warning'] {
+  border-left-color: var(--warning);
+}
+
 .attention-rail[data-tone='danger'] .attention-marker {
   background: var(--danger);
 }
 
+.attention-rail[data-tone='danger'] {
+  border-left-color: var(--danger);
+}
+
 .attention-rail[data-tone='success'] .attention-marker {
   background: var(--success);
+}
+
+.attention-rail[data-tone='success'] {
+  border-left-color: var(--success);
 }
 
 .attention-label {
@@ -280,16 +297,21 @@ button {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink);
+  white-space: nowrap;
 }
 
 .attention-value {
-  font-size: 1.2rem;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 0.9;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 .attention-reason {
+  margin-left: auto;
+  max-width: 28ch;
   font-size: 13px;
+  line-height: 1.25;
 }
 
 .detail-link {
@@ -305,6 +327,29 @@ button {
 
 .detail-link:hover {
   text-decoration: underline;
+}
+
+.surface-heading {
+  position: relative;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.surface-heading::before {
+  content: 'Warehouse outbound / live brief';
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.surface-title {
+  font-size: clamp(1.8rem, 2.8vw, 3.1rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
 }
 
 /* Data state */

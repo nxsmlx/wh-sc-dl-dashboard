@@ -1,7 +1,7 @@
 .shipping-view {
   display: flex;
   flex-direction: column;
-  gap: clamp(var(--space-3), 1.6vw, var(--space-6));
+  gap: clamp(var(--space-4), 2vw, var(--space-8));
   min-height: 0;
   flex: 1;
   justify-content: space-between;
@@ -9,11 +9,10 @@
 
 .ship-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.7fr);
-  gap: clamp(var(--space-6), 4vw, 72px);
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: clamp(var(--space-8), 7vw, 136px);
   align-items: end;
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--rule);
+  padding: var(--space-6) 0 var(--space-4);
 }
 
 .ship-primary {
@@ -22,15 +21,15 @@
 }
 
 .hero-label {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .hero-value {
-  font-size: clamp(3.6rem, 7.4vw, 7.4rem);
-  font-weight: 600;
+  font-size: clamp(4rem, 9.2vw, 9rem);
+  font-weight: 500;
   line-height: 0.95;
   letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
@@ -53,14 +52,21 @@
 .ship-figures {
   margin: 0;
   display: grid;
-  gap: var(--space-4);
+  gap: 0;
+  border-left: 1px solid var(--rule-strong);
+  padding-left: clamp(var(--space-4), 2vw, var(--space-8));
 }
 
 .ship-figures div {
   display: grid;
   gap: 2px;
-  padding-top: var(--space-3);
+  padding: var(--space-3) 0;
   border-top: 1px solid var(--rule);
+}
+
+.ship-figures div:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .ship-figures dt {
@@ -86,7 +92,8 @@
 }
 
 .ship-status {
-  padding-bottom: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--rule-strong);
   border-bottom: 1px solid var(--rule);
 }
 
@@ -96,13 +103,17 @@
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
+  gap: 0;
 }
 
 .status-item {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
+  min-width: 220px;
+  padding-right: var(--space-6);
+  margin-right: var(--space-6);
+  border-right: 1px solid var(--rule);
 }
 
 .status-dot {
@@ -140,25 +151,28 @@
 .ship-lower {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.85fr);
-  gap: clamp(var(--space-4), 2.4vw, 40px);
+  gap: clamp(var(--space-6), 3.2vw, 64px);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule-strong);
   align-items: start;
   min-height: 0;
 }
 
 .ship-lower h2 {
   margin: 0 0 var(--space-3);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-muted);
 }
 
 .ship-reasons {
   padding-left: clamp(var(--space-4), 2vw, var(--space-8));
-  border-left: 1px solid var(--rule);
+  border-left: 1px solid var(--rule-strong);
 }
 
 .ship-zones {
   padding-left: clamp(var(--space-4), 2vw, var(--space-8));
-  border-left: 1px solid var(--rule);
+  border-left: 1px solid var(--rule-strong);
 }
