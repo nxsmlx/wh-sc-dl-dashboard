@@ -44,26 +44,40 @@ let loginAttempts = new Map();
 async function loadState() {
   try {
     const raw = JSON.parse(await readFile(STATE_FILE, 'utf8'));
-    state = { ...emptyState, ...sanitize(raw) };
+    state = { ...emptyState, ...sanitize(raw, raw) };
   } catch {
     state = { ...emptyState };
   }
 }
 
-function sanitize(input) {
+function sanitize(input, previous = {}) {
   const output = {};
   if (input && typeof input === 'object') {
-    if (input.notice && typeof input.notice.text === 'string' && input.notice.text.trim() !== '') {
+    // Partial updates keep the previous value when a field is absent (undefined),
+    // so publishing one control never clears the others. Explicit null clears.
+    if (input.notice === null) {
+      output.notice = null;
+    } else if (input.notice && typeof input.notice.text === 'string' && input.notice.text.trim() !== '') {
       output.notice = {
         text: input.notice.text.trim().slice(0, 280),
         expiresAt: typeof input.notice.expiresAt === 'string' ? input.notice.expiresAt : null,
       };
     } else {
-      output.notice = null;
+      output.notice = previous.notice ?? null;
     }
-    output.forcedPage = input.forcedPage === 'shipping' || input.forcedPage === 'delivery' ? input.forcedPage : null;
-    output.paused = input.paused === true;
-    output.theme = input.theme === 'dark' || input.theme === 'light' ? input.theme : null;
+    output.forcedPage =
+      input.forcedPage === undefined
+        ? previous.forcedPage ?? null
+        : input.forcedPage === 'shipping' || input.forcedPage === 'delivery'
+          ? input.forcedPage
+          : null;
+    output.paused = input.paused === undefined ? previous.paused ?? false : input.paused === true;
+    output.theme =
+      input.theme === undefined
+        ? previous.theme ?? null
+        : input.theme === 'dark' || input.theme === 'light'
+          ? input.theme
+          : null;
     output.updatedAt = typeof input.updatedAt === 'string' ? input.updatedAt : null;
   }
   return output;
@@ -219,7 +233,7 @@ const server = createServer(async (request, response) => {
         return json(response, 401, { error: 'Not signed in' });
       }
       const body = await readBody(request);
-      state = { ...sanitize(body), updatedAt: new Date().toISOString() };
+      state = { ...sanitize(body, state), updatedAt: new Date().toISOString() };
       await saveState();
       return json(response, 200, state);
     }

@@ -71,10 +71,11 @@
       <section id="control-section" class="hidden">
         <label for="notice">Notice on the board</label>
         <textarea id="notice" maxlength="280" placeholder="Contoh: Meeting 3 petang di bilik mesyuarat."></textarea>
-        <p class="hint">Kosongkan untuk buang notice. Maksimum 280 aksara.</p>
+        <p class="hint">Maksimum 280 aksara. Kosongkan kemudian Publish untuk buang.</p>
 
         <label for="expires">Auto-hide at (optional)</label>
         <input id="expires" type="datetime-local" />
+        <p class="hint">Masa ikut jam peranti anda. Kosongkan untuk notice kekal sehingga dibuang.</p>
 
         <div class="row">
           <div>
@@ -206,6 +207,19 @@
       });
 
       refresh();
+      // Keep this page in step when another admin publishes from another device.
+      setInterval(async () => {
+        if ($('control-section').classList.contains('hidden') || document.activeElement === $('notice') || document.activeElement === $('expires')) {
+          return;
+        }
+        const before = current ? current.updatedAt : null;
+        try {
+          const state = await api('/api/state');
+          if (state.updatedAt && state.updatedAt !== before) fill(state);
+        } catch {
+          // The next successful poll catches up.
+        }
+      }, 15000);
     </script>
   </body>
 </html>

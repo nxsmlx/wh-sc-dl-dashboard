@@ -1,8 +1,7 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
-import { createFixtureDataSource, type DashboardDataSource } from '../data/data-source';
-import { demoSnapshot } from '../data/fixture';
+import { createFixtureDataSource } from '../data/data-source';
 
 function adminState(overrides: Record<string, unknown> = {}) {
   return {

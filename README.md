@@ -82,6 +82,8 @@ docker compose up -d --build
 
 Open `http://<server>:8080/admin`.
 
+**If you recreate the container without the `./data` volume, published admin state is lost.** Always use `docker compose up` (which mounts `./data`), not a bare `docker run`.
+
 ## Deploy on a VPS
 
 ```bash
