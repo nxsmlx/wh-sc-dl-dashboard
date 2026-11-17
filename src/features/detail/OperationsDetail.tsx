@@ -2,10 +2,9 @@ import type { DashboardSnapshot, WallboardPage } from '../../data/types';
 import { HorizontalBars } from '../../ui/charts/HorizontalBars';
 import { TrendLine } from '../../ui/charts/TrendLine';
 import { IssueList } from '../../ui/IssueList';
+import { StatusChip } from '../../ui/StatusChip';
 import { StatusStream } from '../../ui/StatusStream';
 import './operations-detail.css';
-
-const pct = (value: number): string => `${value.toFixed(1)}%`;
 
 export function OperationsDetail({
   page,
@@ -20,97 +19,139 @@ export function OperationsDetail({
   const title = isShipping ? 'Shipping check operations' : 'Delivery operations';
   const shipping = snapshot.shipping;
   const delivery = snapshot.delivery;
-  const mixTotal = Math.max(1, delivery.mix.sameDay + delivery.mix.oneDay + delivery.mix.moreThanOneDay);
+  const monthLabel = isShipping ? shipping.monthLabel : delivery.monthLabel;
+  const lorryTotal = delivery.lorryPunctuality.ok + delivery.lorryPunctuality.ng;
 
   return (
-    <section className="operations-detail" aria-label={`${title} detail`}>
+    <section className="surface operations-detail" aria-label={`${title} detail`}>
       <header className="detail-header">
-        <div>
-          <p className="detail-kicker">Operations detail · {isShipping ? shipping.monthLabel : delivery.monthLabel}</p>
-          <h1>{title}</h1>
-        </div>
+        <h1>{title}</h1>
+        <span className="detail-period">{monthLabel}</span>
         <button type="button" className="detail-back" onClick={onBack}>
           Back to wallboard
         </button>
       </header>
 
       {isShipping ? (
-        <div className="detail-grid shipping-detail-grid">
-          <section className="detail-section detail-wide">
-            <h2>Issue-rate trend</h2>
-            <TrendLine title="Issues per 10k lines" points={shipping.monthlyIssueRate} />
+        <div className="board-panels detail-panels">
+          <section className="board-panel">
+            <h2>
+              Issue-rate trend<small>per 10k lines</small>
+            </h2>
+            <div className="panel-body">
+              <TrendLine
+                title="Issues per 10k lines"
+                points={shipping.monthlyIssueRate}
+                formatValue={(value) => value.toFixed(1)}
+              />
+            </div>
           </section>
-          <section className="detail-section">
-            <h2>Shipment status</h2>
-            <StatusStream statuses={shipping.shipmentStatuses} />
-          </section>
-          <section className="detail-section">
-            <h2>Quantity variance</h2>
-            <p className="detail-big-number">{shipping.qtyVarianceTotal.toLocaleString('en-GB')}</p>
-            <p className="detail-muted">pieces short or extra</p>
-          </section>
-          <section className="detail-section">
+          <section className="board-panel">
             <h2>Issues by reason</h2>
-            <HorizontalBars title="Issue reason ranking" points={shipping.reasonBreakdown} />
+            <div className="panel-body">
+              <HorizontalBars title="Issue reason ranking" points={shipping.reasonBreakdown} />
+            </div>
           </section>
-          <section className="detail-section">
+          <section className="board-panel">
             <h2>Issues by workzone</h2>
-            <HorizontalBars title="Workzone ranking" points={shipping.workzoneBreakdown} />
+            <div className="panel-body">
+              <HorizontalBars title="Workzone ranking" points={shipping.workzoneBreakdown} />
+            </div>
           </section>
-          <section className="detail-section detail-wide">
-            <h2>Latest issues</h2>
-            <IssueList issues={shipping.recentIssues} />
+          <section className="board-panel">
+            <h2>
+              Shipment status<small>now</small>
+            </h2>
+            <div className="panel-body">
+              <StatusStream statuses={shipping.shipmentStatuses} />
+            </div>
+          </section>
+          <section className="board-panel board-wide">
+            <h2>
+              Latest issues<small>{shipping.monthLabel}</small>
+            </h2>
+            <div className="panel-body">
+              <IssueList issues={shipping.recentIssues} />
+            </div>
           </section>
         </div>
       ) : (
-        <div className="detail-grid delivery-detail-grid">
-          <section className="detail-section detail-wide">
-            <h2>1-day result by region</h2>
-            <HorizontalBars
-              title={`Target ${pct(delivery.oneDayTargetPct)}`}
-              points={delivery.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
-              suffix="%"
-              decimals={1}
-            />
+        <div className="board-panels detail-panels">
+          <section className="board-panel">
+            <h2>
+              Region result<small>target {delivery.oneDayTargetPct.toFixed(1)}%</small>
+            </h2>
+            <div className="panel-body">
+              <HorizontalBars
+                title={`1-day result by region, target ${delivery.oneDayTargetPct.toFixed(1)}%`}
+                points={delivery.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
+                suffix="%"
+                decimals={1}
+                belowIsAlert={delivery.oneDayTargetPct}
+              />
+            </div>
           </section>
-          <section className="detail-section">
-            <h2>Delivery mix</h2>
-            <ul className="detail-list">
-              <li><span>Same day</span><strong>{delivery.mix.sameDay.toLocaleString('en-GB')}</strong><em>{pct((delivery.mix.sameDay / mixTotal) * 100)}</em></li>
-              <li><span>1 day</span><strong>{delivery.mix.oneDay.toLocaleString('en-GB')}</strong><em>{pct((delivery.mix.oneDay / mixTotal) * 100)}</em></li>
-              <li><span>More than 1 day</span><strong>{delivery.mix.moreThanOneDay.toLocaleString('en-GB')}</strong><em>{pct((delivery.mix.moreThanOneDay / mixTotal) * 100)}</em></li>
-            </ul>
-          </section>
-          <section className="detail-section">
+          <section className="board-panel">
             <h2>Transporter issue types</h2>
-            <HorizontalBars title="Issue type ranking" points={delivery.transporterByType} />
+            <div className="panel-body">
+              <HorizontalBars title="Transporter issue type ranking" points={delivery.transporterByType} />
+            </div>
           </section>
-          <section className="detail-section">
-            <h2>Lorry punctuality</h2>
-            <p className="detail-big-number">{delivery.lorryPunctuality.ok} / {delivery.lorryPunctuality.ok + delivery.lorryPunctuality.ng}</p>
-            <p className="detail-muted">on time · {delivery.lorryPunctuality.ng} late</p>
+          <section className="board-panel">
+            <h2>
+              Lorry punctuality<small>latest plan</small>
+            </h2>
+            <div className="panel-body">
+              <p className="detail-big-number">
+                {delivery.lorryPunctuality.ok}
+                <small> / {lorryTotal} on time</small>
+              </p>
+              {delivery.lorryPunctuality.ng > 0 ? (
+                <StatusChip tone="warning" label={`${delivery.lorryPunctuality.ng} late`} />
+              ) : (
+                <StatusChip tone="success" label="All on time" />
+              )}
+            </div>
           </section>
-          <section className="detail-section detail-wide">
+          <section className="board-panel board-wide">
+            <h2>
+              Lorry plan<small>latest plan</small>
+            </h2>
+            <div className="panel-body">
+              {delivery.lorryPlan.length > 0 ? (
+                <ol className="detail-lorry-list">
+                  {delivery.lorryPlan.map((slot) => (
+                    <li key={`${slot.timeSlot}-${slot.plate}`}>
+                      <span className="lorry-time">{slot.timeSlot}</span>
+                      <span>{slot.lot}</span>
+                      <span>{slot.plate}</span>
+                      <StatusChip
+                        tone={slot.arrivalStatus === 'OK' ? 'success' : 'danger'}
+                        label={slot.arrivalStatus === 'OK' ? 'On time' : 'Late'}
+                      />
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="chart-empty">No lorry plan loaded</p>
+              )}
+            </div>
+          </section>
+          <section className="board-panel">
             <h2>Latest transporter cases</h2>
-            <ul className="issue-list">
-              {delivery.recentTransporterIssues.map((issue) => (
-                <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="issue-row">
-                  <time className="issue-date" dateTime={issue.date}>{issue.date.slice(5)}</time>
-                  <span className="issue-zone">{issue.region}</span>
-                  <span className="issue-detail">{issue.issue}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-          <section className="detail-section detail-wide">
-            <h2>Lorry plan</h2>
-            <ol className="detail-lorry-list">
-              {delivery.lorryPlan.map((slot) => (
-                <li key={`${slot.timeSlot}-${slot.plate}`}>
-                  <span>{slot.timeSlot}</span><span>{slot.lot}</span><span>{slot.plate}</span><strong data-status={slot.arrivalStatus}>{slot.arrivalStatus}</strong>
-                </li>
-              ))}
-            </ol>
+            <div className="panel-body">
+              <ul className="issue-list">
+                {delivery.recentTransporterIssues.map((issue) => (
+                  <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="case-row">
+                    <time className="issue-date" dateTime={issue.date}>
+                      {issue.date.slice(8)}/{issue.date.slice(5, 7)}
+                    </time>
+                    <span className="issue-zone">{issue.region}</span>
+                    <span className="issue-reason">{issue.issue}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
         </div>
       )}

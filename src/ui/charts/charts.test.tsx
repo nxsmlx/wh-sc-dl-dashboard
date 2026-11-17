@@ -15,8 +15,26 @@ describe('TrendLine', () => {
       />,
     );
 
-    expect(screen.getByRole('img', { name: /Lines by month: Oct 15851 to Nov 14650/ })).toBeInTheDocument();
-    expect(screen.getByText('Nov 14650')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Lines by month: Oct 15,851 to Nov 14,650/ })).toBeInTheDocument();
+    expect(screen.getByText('14,650')).toBeInTheDocument();
+    expect(screen.getByText('Nov')).toBeInTheDocument();
+  });
+
+  it('draws and labels a target line when one is given', () => {
+    render(
+      <TrendLine
+        title="1-day result"
+        points={[
+          { label: 'Sep', value: 95.3 },
+          { label: 'Oct', value: 97.1 },
+        ]}
+        suffix="%"
+        target={95}
+        formatValue={(value) => value.toFixed(1)}
+      />,
+    );
+
+    expect(screen.getByText('Target 95.0%')).toBeInTheDocument();
   });
 
   it('renders an explicit empty state instead of a broken chart', () => {

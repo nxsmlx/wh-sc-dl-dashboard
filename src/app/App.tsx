@@ -135,7 +135,7 @@ export function App({
       ) : null}
       {freshness === 'stale' ? (
         <p className="stale-banner" role="status">
-          Showing data from {new Date(snapshot.lastUpdatedAt).toLocaleString('en-GB')}. Update the workbook to refresh.
+          Workbook has not been updated since {new Date(snapshot.lastUpdatedAt).toLocaleString('en-GB')}. Figures may be out of date.
         </p>
       ) : null}
       {snapshot.source === 'demo' ? (

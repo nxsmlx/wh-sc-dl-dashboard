@@ -1,6 +1,7 @@
 node_modules
 dist
-data
+/data
+src/data/generated-dashboard.json
 .git
 .superpowers
 coverage

@@ -6,5 +6,5 @@ coverage
 src/data/generated-dashboard.json
 .superpowers
 tsconfig.tsbuildinfo
-data
+/data
 .env

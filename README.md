@@ -56,10 +56,13 @@ Editing source needs no build step. Run the tests and build on one machine at a 
 
 ## Layout and design rules
 
-- Open horizontal bands, not repeated card grids. No gradients, glassmorphism, emoji icons or decorative animation.
-- Numbers use tabular figures; charts stay readable without hover.
+- Fixed 1920×1080 board: KPI row on top, panel grid below, no page scroll.
+- Readable from the floor: no text below 18px; KPI figures 92px.
+- Steel blue is structure, cyan is the one live state, green/amber/red are status only. Amber always means warning.
+- Every status is an icon plus a word, never colour alone. KPI status uses the official targets in the workbook `Lists` sheet.
+- Barlow / Barlow Condensed are bundled (SIL OFL, `src/assets/fonts`) and inlined into `dist/index.html`.
 - Dark is the default wallboard theme; light stays available.
-- Colour is reserved for operational state (success, warning, danger, info) plus one ochre accent.
+- "Workbook updated" is the workbook file time, not the import time. Panels name the report month they show.
 
 ## Remote admin and notice board
 

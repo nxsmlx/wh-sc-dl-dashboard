@@ -1,33 +1,41 @@
+/*
+ * Warehouse operations board tokens. Colour carries meaning, never decoration:
+ *   --chrome   steel blue: structure (tabs, rotation progress, chart lines, bars)
+ *   --live     cyan: the one live state (current page, "now")
+ *   --success / --warning / --danger: operational status only
+ * Amber is reserved for warning so a warning never blends into the frame.
+ */
 :root {
   color-scheme: dark;
 
-  --font-ui: 'Barlow', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
-  --font-mono: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, sans-serif;
+  --font-ui: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
 
-  --bg: #06142f;
-  --bg-raised: rgb(15 47 99 / 0.72);
-  --bg-tint: rgb(18 57 116 / 0.46);
-  --ink: #f4f6fb;
-  --ink-muted: #bccae6;
-  --ink-faint: #8aa0cc;
-  --rule: rgb(129 180 255 / 0.22);
-  --rule-strong: rgb(164 205 255 / 0.38);
+  --bg: #061430;
+  --surface: rgb(16 44 92 / 0.5);
+  --surface-strong: rgb(19 52 106 / 0.72);
+  --surface-sheen: rgb(255 255 255 / 0.07);
+  --bar-bg: rgb(6 22 52 / 0.82);
+  --glow-a: rgb(36 108 205 / 0.3);
+  --glow-b: rgb(14 70 150 / 0.32);
 
-  --accent: #ffc72c;
-  --accent-ink: #071a3d;
+  --ink: #f2f6fd;
+  --ink-muted: #b5c6e4;
+  --ink-faint: #8299c2;
+  --rule: rgb(132 178 248 / 0.2);
+  --rule-strong: rgb(160 200 255 / 0.36);
 
-  --success: #22c55e;
-  --success-ink: #032611;
-  --warning: #ffb020;
+  --chrome: #7fb2ff;
+  --live: #3fd0ff;
+
+  --success: #2fd27a;
+  --success-ink: #022412;
+  --warning: #ffb21f;
   --warning-ink: #2b1a00;
-  --danger: #ff5a4f;
-  --danger-ink: #2d0402;
-  --info: #38bdf8;
+  --danger: #ff5b52;
+  --danger-ink: #2c0402;
 
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
+  --accent: var(--chrome);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -35,26 +43,38 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
-  --space-12: 48px;
 }
 
 [data-theme='light'] {
   color-scheme: light;
 
-  --bg: #f5f4f0;
-  --bg-raised: #fbfaf7;
-  --bg-tint: #eeece6;
-  --ink: #121b1a;
-  --ink-muted: #586664;
-  --ink-faint: #7d8a87;
-  --rule: rgb(18 27 26 / 0.12);
-  --rule-strong: rgb(18 27 26 / 0.2);
+  --bg: #e9eef6;
+  --surface: rgb(255 255 255 / 0.74);
+  --surface-strong: rgb(255 255 255 / 0.9);
+  --surface-sheen: rgb(255 255 255 / 0.9);
+  --bar-bg: #0b2a5c;
+  --glow-a: rgb(96 150 230 / 0.22);
+  --glow-b: rgb(150 185 235 / 0.28);
 
-  --accent: #96651b;
-  --accent-ink: #fff8ea;
+  --ink: #0d1b33;
+  --ink-muted: #3d4f6d;
+  --ink-faint: #5d6e8c;
+  --rule: rgb(13 27 51 / 0.12);
+  --rule-strong: rgb(13 27 51 / 0.22);
 
-  --success: #2f7a55;
-  --warning: #8a6212;
-  --danger: #a8412f;
-  --info: #335f78;
+  --chrome: #1f5fc4;
+  --live: #0277b8;
+
+  --success: #13804a;
+  --success-ink: #ffffff;
+  --warning: #b36a00;
+  --warning-ink: #ffffff;
+  --danger: #c62a22;
+  --danger-ink: #ffffff;
+}
+
+/* The top bar stays navy in both themes, so its text uses its own fixed ink. */
+.rail-top {
+  --bar-ink: #f2f6fd;
+  --bar-ink-muted: #b5c6e4;
 }

@@ -30,10 +30,11 @@ describe('WallboardShell', () => {
     renderShell({ rotation: { ...initialRotationState, elapsedMs: 15_000 } });
 
     expect(screen.getByRole('button', { name: 'Shipping check' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText('November 2026')).toBeInTheDocument();
-    expect(screen.getByText(/Fresh/)).toBeInTheDocument();
+    expect(screen.getByText('Report: November 2026')).toBeInTheDocument();
+    expect(screen.getByText(/Workbook updated/)).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '15');
-    expect(screen.getByText(/15s/)).toBeInTheDocument();
+    expect(screen.getByText('Delivery in 15s')).toBeInTheDocument();
+    expect(screen.getByLabelText('Current time')).toHaveTextContent(/^\d{2}:\d{2}$/);
   });
 
   it('names the manual controls for keyboard and screen-reader use', () => {
@@ -52,6 +53,6 @@ describe('WallboardShell', () => {
 
   it('shows the stale label when data is stale', () => {
     renderShell({ freshness: 'stale' });
-    expect(screen.getByText(/Stale data/)).toBeInTheDocument();
+    expect(screen.getByText(/Workbook not updated since/)).toBeInTheDocument();
   });
 });

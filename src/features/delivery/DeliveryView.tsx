@@ -1,11 +1,12 @@
 import type { DeliverySnapshot } from '../../data/types';
 import { getDeliveryAttention } from '../attention/attention';
+import { targetStatus } from '../kpi/kpi-status';
 import { AttentionRail } from '../../ui/AttentionRail';
+import { KpiTile } from '../../ui/KpiTile';
 import { HorizontalBars } from '../../ui/charts/HorizontalBars';
 import { TrendLine } from '../../ui/charts/TrendLine';
-import './delivery-view.css';
 
-const pct = (value: number): string => `${value.toFixed(1)}%`;
+const pct = (value: number): string => value.toFixed(1);
 
 export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDetails?: () => void }) {
   const utilization = data.tripTarget > 0 ? (data.tripCount / data.tripTarget) * 100 : 0;
@@ -17,35 +18,79 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
     { key: 'more', label: 'More than 1 day', count: data.mix.moreThanOneDay },
   ];
   const attention = getDeliveryAttention(data);
+  const month = data.monthLabel.split(' ')[0];
 
   return (
-    <section className="surface delivery-view">
-      <div className="surface-heading">
-        <h1 className="surface-title">Delivery</h1>
-        <p className="surface-note">Performance · {data.monthLabel}</p>
-      </div>
-
+    <section className="surface delivery-view" aria-label="Delivery">
+      <h1 className="visually-hidden">Delivery</h1>
       <div className="board-kpi-row">
-        <div className="board-kpi kpi-primary"><span>1-day result</span><strong>{pct(data.oneDayResultPct)}</strong><small>target {pct(data.oneDayTargetPct)}</small></div>
-        <div className="board-kpi"><span>Trip utilization</span><strong>{pct(utilization)}</strong><small>{data.tripCount} / {data.tripTarget} trips</small></div>
-        <div className="board-kpi"><span>Same-day delivery</span><strong>{pct(sameDayShare)}</strong><small>{data.sameDayLineCount.toLocaleString('en-GB')} / {data.totalLineCount.toLocaleString('en-GB')} lines</small></div>
-        <div className="board-kpi"><span>Transporter issues</span><strong>{data.transporterIssueCount}</strong><small>{data.transporterIssuesYearToDate} year to date</small></div>
+        <KpiTile
+          label={`1-day result · ${month}`}
+          value={pct(data.oneDayResultPct)}
+          unit="%"
+          status={targetStatus(data.oneDayResultPct, data.oneDayTargetPct)}
+          note={`target ${pct(data.oneDayTargetPct)}%`}
+        />
+        <KpiTile
+          label="Trip utilization"
+          value={pct(utilization)}
+          unit="%"
+          status={targetStatus(Number(utilization.toFixed(1)), data.tripUtilizationTargetPct)}
+          note={`${data.tripCount} / ${data.tripTarget} trips`}
+        />
+        <KpiTile
+          label="Same-day delivery"
+          value={pct(sameDayShare)}
+          unit="%"
+          note={`${data.sameDayLineCount.toLocaleString('en-GB')} / ${data.totalLineCount.toLocaleString('en-GB')} lines`}
+        />
+        <KpiTile
+          label="Transporter issues"
+          value={String(data.transporterIssueCount)}
+          status={
+            data.transporterIssueCount > 0
+              ? { tone: 'warning', label: `${data.transporterIssueCount} cases` }
+              : { tone: 'success', label: 'None' }
+          }
+          note={`${data.transporterIssuesYearToDate} year to date`}
+        />
       </div>
 
-      <div className="board-panels delivery-panels">
-        <section className="board-panel board-chart"><h2>1-day result movement</h2><TrendLine title="1-day result by month" points={data.monthlyTrend} suffix="%" /></section>
-        <section className="board-panel"><h2>Region performance</h2>
-          <HorizontalBars
-            title="Achievement this month"
-            points={data.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
-            suffix="%"
-            decimals={1}
-          />
+      <div className="board-panels">
+        <section className="board-panel">
+          <h2>
+            1-day result<small>last 6 months</small>
+          </h2>
+          <div className="panel-body">
+            <TrendLine
+              title="1-day result by month"
+              points={data.monthlyTrend}
+              suffix="%"
+              target={data.oneDayTargetPct}
+              formatValue={(value) => value.toFixed(1)}
+            />
+          </div>
         </section>
-        <section className="board-panel board-attention"><AttentionRail signal={attention} /></section>
-        <section className="board-panel"><h2>Delivery mix</h2>
-          <div className="del-mix">
-            <p className="chart-title">Delivery mix</p>
+        <section className="board-panel">
+          <h2>
+            Region result<small>target {pct(data.oneDayTargetPct)}%</small>
+          </h2>
+          <div className="panel-body">
+            <HorizontalBars
+              title={`1-day result by region, ${data.monthLabel}`}
+              points={data.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
+              suffix="%"
+              decimals={1}
+              belowIsAlert={data.oneDayTargetPct}
+            />
+          </div>
+        </section>
+        <AttentionRail signal={attention} />
+        <section className="board-panel">
+          <h2>
+            Delivery mix<small>{month}</small>
+          </h2>
+          <div className="panel-body">
             <div
               className="mix-bar"
               role="img"
@@ -74,34 +119,37 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
             </ul>
           </div>
         </section>
-        <section className="board-panel"><h2>Transporter issues</h2>
-          <p className="del-issue-count">
-            {data.transporterIssueCount} this month · {data.transporterIssuesYearToDate} year to date
-          </p>
-          {data.transporterByType.length > 0 ? (
-            <p className="issue-types">
-              {data.transporterByType.map((type) => `${type.label} ${type.value}`).join(' · ')}
-            </p>
-          ) : null}
-          {data.recentTransporterIssues.length > 0 ? (
-            <ul className="issue-list">
-              {data.recentTransporterIssues.map((issue) => (
-                <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="issue-row">
-                  <time className="issue-date" dateTime={issue.date}>
-                    {issue.date.slice(5)}
-                  </time>
-                  <span className="issue-zone">{issue.region}</span>
-                  <span className="issue-detail">{issue.issue}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="chart-empty">No transporter issues logged</p>
-          )}
-
+        <section className="board-panel board-wide">
+          <h2>
+            Latest transporter cases<small>up to {data.monthLabel}</small>
+          </h2>
+          <div className="panel-body">
+            {data.recentTransporterIssues.length > 0 ? (
+              <ul className="issue-list">
+                {data.recentTransporterIssues.map((issue) => (
+                  <li key={`${issue.date}-${issue.issue}-${issue.region}`} className="case-row">
+                    <time className="issue-date" dateTime={issue.date}>
+                      {issue.date.slice(8)}/{issue.date.slice(5, 7)}
+                    </time>
+                    <span className="issue-zone">{issue.region}</span>
+                    <span className="issue-reason">{issue.issue}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="chart-empty">No transporter cases recorded</p>
+            )}
+          </div>
         </section>
       </div>
-      <div className="board-actions">{onDetails ? <button type="button" className="detail-link" onClick={onDetails}>View operations detail</button> : null}</div>
+
+      {onDetails ? (
+        <div className="board-actions">
+          <button type="button" className="detail-link" onClick={onDetails}>
+            View operations detail
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

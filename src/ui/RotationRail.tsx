@@ -22,13 +22,11 @@ export function RotationRail({
 }) {
   const progress = Math.min(1, rotation.elapsedMs / durationMs);
   const remaining = Math.max(0, Math.ceil((durationMs - rotation.elapsedMs) / 1000));
+  const nextPage: WallboardPage = rotation.page === 'shipping' ? 'delivery' : 'shipping';
   const style = { '--progress': String(progress) } as CSSProperties;
 
   return (
     <footer className="rotation-rail" aria-label="Rotation controls">
-      <span className="rotation-label">
-        {PAGE_LABEL[rotation.page]} · {rotation.isPaused ? 'paused' : `${String(remaining).padStart(2, '0')}s`}
-      </span>
       <div
         className="rotation-track"
         role="progressbar"
@@ -40,7 +38,11 @@ export function RotationRail({
       >
         <div className="rotation-fill" />
       </div>
-      <span className="rotation-label">30s per page</span>
+      <span className="rotation-label">
+        {rotation.isPaused
+          ? `${PAGE_LABEL[rotation.page]} · paused`
+          : `${PAGE_LABEL[nextPage]} in ${String(remaining).padStart(2, '0')}s`}
+      </span>
       <div className="rotation-controls">
         <button type="button" onClick={onPrevious} aria-label="Show previous page">
           Prev

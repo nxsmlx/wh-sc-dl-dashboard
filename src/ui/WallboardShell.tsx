@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { Freshness, ThemeName, WallboardPage } from '../data/types';
 import type { RotationState } from '../features/rotation/rotation';
 import { ThemeToggle } from './ThemeToggle';
@@ -9,16 +9,10 @@ const PAGE_LABEL: Record<WallboardPage, string> = {
   delivery: 'Delivery',
 };
 
-const FRESHNESS_LABEL: Record<Freshness, string> = {
-  fresh: 'Fresh',
-  stale: 'Stale data',
-  invalid: 'Unknown timestamp',
-};
-
 function formatUpdated(iso: string): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) {
-    return '--:--';
+    return 'unknown';
   }
   return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
@@ -27,6 +21,17 @@ function formatUpdated(iso: string): string {
     minute: '2-digit',
     hour12: false,
   }).format(parsed);
+}
+
+function useClock(): string {
+  const format = () =>
+    new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  const [time, setTime] = useState(format);
+  useEffect(() => {
+    const timer = window.setInterval(() => setTime(format()), 15_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return time;
 }
 
 export interface WallboardShellProps {
@@ -60,11 +65,14 @@ export function WallboardShell({
   onTogglePause,
   children,
 }: WallboardShellProps) {
+  const clock = useClock();
+  const updatedLabel = freshness === 'fresh' ? 'Workbook updated' : 'Workbook not updated since';
+
   return (
     <div className="wallboard" data-theme={theme}>
       <header className="rail-top">
         <span className="rail-brand">
-          WH <strong>/ OUTBOUND</strong>
+          WH <strong>Outbound</strong>
         </span>
         <nav className="page-nav" aria-label="Wallboard pages">
           {(['shipping', 'delivery'] as WallboardPage[]).map((value) => (
@@ -80,9 +88,12 @@ export function WallboardShell({
           ))}
         </nav>
         <div className="rail-meta">
-          <span>{monthLabel}</span>
-          <span data-freshness={freshness}>
-            {FRESHNESS_LABEL[freshness]} · <time dateTime={lastUpdatedAt}>{formatUpdated(lastUpdatedAt)}</time>
+          <span className="rail-period">Report: {monthLabel}</span>
+          <span className="rail-updated" data-freshness={freshness}>
+            {updatedLabel} <time dateTime={lastUpdatedAt}>{formatUpdated(lastUpdatedAt)}</time>
+          </span>
+          <span className="rail-clock" aria-label="Current time">
+            {clock}
           </span>
           <ThemeToggle theme={theme} onChange={onThemeChange} />
         </div>

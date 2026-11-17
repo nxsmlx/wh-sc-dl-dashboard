@@ -38,9 +38,12 @@
 
 ## UI rules
 
-- Open horizontal bands, not repeated rounded card grids. No gradient decoration, glassmorphism, emoji icons, pie charts, or scroll-triggered reveals.
-- Dark is the default wallboard theme; light must stay available and persist per device.
-- Numbers use `tabular-nums`; charts must be readable without hover.
+- Fixed 1920×1080 stage: KPI row + panel grid. No panel may overflow and no text may be below 18px (it is read from 3–6 m).
+- Colour roles in `src/styles/tokens.css`: steel blue = structure, cyan = live state, green/amber/red = status only. Do not use amber for chrome.
+- Status is an icon plus a word (`StatusChip`), never colour alone. KPI targets come from the workbook `Lists` sheet; do not invent targets.
+- Dark is the default wallboard theme; light must stay available, persist per device, and keep the navy top bar.
+- Numbers use `tabular-nums`; charts print every value and must be readable without hover.
+- `.gitignore` ignores `/data` (server runtime data) only; `src/data/` is source and must stay tracked.
 
 ## Hybrid workflow
 

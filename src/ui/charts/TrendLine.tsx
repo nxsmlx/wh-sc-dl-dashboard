@@ -1,83 +1,86 @@
 import type { SeriesPoint } from '../../data/types';
 
-const WIDTH = 320;
-const HEIGHT = 88;
-const PAD = 6;
+const WIDTH = 600;
+const HEIGHT = 260;
+const PAD_X = 40;
+const PAD_TOP = 40;
+const PAD_BOTTOM = 34;
 
-function buildPoints(points: SeriesPoint[]): { x: number; y: number }[] {
-  if (points.length === 0) {
-    return [];
-  }
-  const values = points.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  return points.map((point, index) => {
-    const x = points.length === 1 ? WIDTH / 2 : PAD + (index / (points.length - 1)) * (WIDTH - PAD * 2);
-    const y = HEIGHT - PAD - ((point.value - min) / span) * (HEIGHT - PAD * 2);
-    return { x, y };
-  });
-}
-
+/**
+ * Line chart with every value printed on the chart, so nothing depends on hover.
+ * Values are spread across the plot height by design; the printed numbers carry the scale.
+ */
 export function TrendLine({
   title,
   points,
   suffix = '',
+  target,
+  formatValue = (value: number) => value.toLocaleString('en-GB'),
 }: {
   title: string;
   points: SeriesPoint[];
   suffix?: string;
+  target?: number;
+  formatValue?: (value: number) => string;
 }) {
-  const coords = buildPoints(points);
-  const line = coords.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
-  const area = coords.length
-    ? `M ${coords[0].x} ${HEIGHT} L ${coords.map((point) => `${point.x} ${point.y}`).join(' L ')} L ${
-        coords[coords.length - 1].x
-      } ${HEIGHT} Z`
-    : '';
-  const last = points[points.length - 1];
+  if (points.length === 0) {
+    return (
+      <figure className="trend-chart" aria-label={`${title}: no data`}>
+        <p className="chart-empty">No trend data yet</p>
+      </figure>
+    );
+  }
+
+  const values = points.map((point) => point.value);
+  const scaleValues = target === undefined ? values : [...values, target];
+  const min = Math.min(...scaleValues);
+  const max = Math.max(...scaleValues);
+  const span = max - min || 1;
+  const plotHeight = HEIGHT - PAD_TOP - PAD_BOTTOM;
+  const y = (value: number) => PAD_TOP + (1 - (value - min) / span) * plotHeight;
+  const x = (index: number) =>
+    points.length === 1 ? WIDTH / 2 : PAD_X + (index / (points.length - 1)) * (WIDTH - PAD_X * 2);
+  const coords = points.map((point, index) => ({ x: x(index), y: y(point.value) }));
   const first = points[0];
-  const summary =
-    points.length === 0
-      ? `${title}: no data`
-      : `${title}: ${first.label} ${first.value}${suffix} to ${last.label} ${last.value}${suffix}`;
+  const last = points[points.length - 1];
+  const summary = `${title}: ${first.label} ${formatValue(first.value)}${suffix} to ${last.label} ${formatValue(last.value)}${suffix}`;
 
   return (
-    <figure className="trend-line" aria-label={summary}>
-      <figcaption className="trend-caption">
-        <span>{title}</span>
-        <span className="trend-endpoint">
-          {last ? `${last.label} ${last.value}${suffix}` : 'No data'}
-        </span>
-      </figcaption>
-      {coords.length > 0 ? (
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} preserveAspectRatio="none">
-          <path d={area} fill="var(--accent)" opacity="0.14" />
-          <polyline
-            points={line}
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-          <circle cx={coords[coords.length - 1].x} cy={coords[coords.length - 1].y} r="3" fill="var(--accent)" />
-        </svg>
-      ) : (
-        <p className="chart-empty">No trend data yet</p>
-      )}
-      <ol className="trend-axis">
-        {points.map((point) => (
-          <li key={point.label}>
-            <span>{point.label}</span>
-            <span className="chart-value">
-              {point.value}
+    <figure className="trend-chart" aria-label={summary}>
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} preserveAspectRatio="xMidYMid meet">
+        <line className="grid-line" x1={PAD_X} x2={WIDTH - PAD_X} y1={HEIGHT - PAD_BOTTOM} y2={HEIGHT - PAD_BOTTOM} />
+        {target !== undefined ? (
+          <>
+            <line className="target-line" x1={PAD_X} x2={WIDTH - PAD_X} y1={y(target)} y2={y(target)} />
+            <text className="target-label" x={WIDTH - PAD_X} y={y(target) - 8} textAnchor="end">
+              Target {formatValue(target)}
               {suffix}
-            </span>
-          </li>
-        ))}
-      </ol>
+            </text>
+          </>
+        ) : null}
+        <polyline
+          points={coords.map((point) => `${point.x},${point.y}`).join(' ')}
+          fill="none"
+          stroke="var(--chrome)"
+          strokeWidth="4"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        {coords.map((point, index) => {
+          const isLast = index === coords.length - 1;
+          return (
+            <g key={points[index].label}>
+              <circle cx={point.x} cy={point.y} r={isLast ? 8 : 5} fill={isLast ? 'var(--live)' : 'var(--chrome)'} />
+              <text className="point-label" data-last={isLast} x={point.x} y={point.y - 16} textAnchor="middle">
+                {formatValue(points[index].value)}
+              </text>
+              <text className="axis-label" x={point.x} y={HEIGHT - 8} textAnchor="middle">
+                {points[index].label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </figure>
   );
 }

@@ -28,14 +28,14 @@ describe('App wallboard', () => {
     await flush();
 
     expect(screen.getByRole('heading', { name: 'Shipping check' })).toBeInTheDocument();
-    expect(screen.getByText('14,650')).toBeInTheDocument();
+    expect(screen.getByText('14,650', { selector: '.kpi-value' })).toBeInTheDocument();
 
     await act(async () => {
       vi.advanceTimersByTime(30_000);
     });
 
     expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument();
-    expect(screen.getByText('97.1%', { selector: '.board-kpi strong' })).toBeInTheDocument();
+    expect(screen.getByText('97.1', { selector: '.kpi-value' })).toBeInTheDocument();
   });
 
   it('does not switch pages before the 30-second boundary', async () => {
@@ -123,8 +123,8 @@ describe('App wallboard', () => {
     };
     render(<App dataSource={stale} staleAfterMs={60_000} />);
 
-    expect(await screen.findByText(/Showing data from/)).toBeInTheDocument();
-    expect(screen.getByText('14,650')).toBeInTheDocument();
+    expect(await screen.findByText(/Workbook has not been updated since/)).toBeInTheDocument();
+    expect(screen.getByText('14,650', { selector: '.kpi-value' })).toBeInTheDocument();
   });
 
   it('pauses rotation in operations detail and resumes after returning', async () => {

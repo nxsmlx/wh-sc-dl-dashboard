@@ -7,9 +7,10 @@
  * Usage:
  *   npm run data:import -- --input <workbook.xlsx> --output public/data/dashboard.json
  */
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdir, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { inflateRawSync } from 'node:zlib';
+import { latestForMonth, readTargets, sentenceCase } from './workbook-rules.mjs';
 
 const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
 const DAY_MS = 86_400_000;
@@ -235,7 +236,7 @@ function text(value) {
   return value === null || value === undefined ? '' : String(value).trim();
 }
 
-function buildRawSnapshot(zip) {
+function buildRawSnapshot(zip, workbookModifiedAt) {
   const sharedStrings = readSharedStrings(zip);
   const sheets = readWorkbookSheets(zip);
   const open = (name) => {
@@ -266,7 +267,7 @@ function buildRawSnapshot(zip) {
       date: excelDate(row.date),
       workzone: text(row.workzone) || 'Unassigned',
       reason: text(row.reason) || 'Unknown',
-      detail: text(row['action / remark']) || 'No remark',
+      detail: sentenceCase(row['action / remark']) || 'No remark',
       variance: number(row['qty variance']),
     }))
     .filter((row) => row.date !== null);
@@ -302,6 +303,8 @@ function buildRawSnapshot(zip) {
     const row = statusRows.find((entry) => text(entry.status).toLowerCase() === label.toLowerCase());
     return row ? number(row['total line']) : 0;
   };
+
+  const targets = readTargets(open('Lists').table(['KPI Target', 'Value']));
 
   const tripRows = open('DL_MonthlyTrip')
     .table(['Month', 'No. of Trip', 'Target Trip'])
@@ -344,7 +347,7 @@ function buildRawSnapshot(zip) {
     .table(['Case Date', 'Month', 'Issue'])
     .map((row) => ({
       date: excelDate(row['case date']),
-      issue: text(row.issue) || 'Unknown issue',
+      issue: sentenceCase(row.issue) || 'Unknown issue',
       region: text(row['destination region']) || 'Unknown region',
     }))
     .filter((row) => row.date !== null)
@@ -389,8 +392,9 @@ function buildRawSnapshot(zip) {
     });
 
   return {
-    lastUpdatedAt: new Date().toISOString(),
-    selectedMonth: currentMonth.month,    shipping: {
+    lastUpdatedAt: workbookModifiedAt,
+    selectedMonth: currentMonth.month,
+    shipping: {
       lineCount: currentMonth.lines,
       previousLineCount: previousMonth.lines,
       issueCount: currentIssues.length,
@@ -404,10 +408,12 @@ function buildRawSnapshot(zip) {
       notConfirm: statusValue('Shipment Not Confirm'),
       releaseToInvoicing: statusValue('Shipment Release to Invoicing'),
       reasonBreakdown: [...reasonCounts.entries()].map(([reason, count]) => ({ reason, count })),
-      recentIssues: [...issueRows]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 5)
-        .map((row) => ({ date: row.date, workzone: row.workzone, reason: row.reason, detail: row.detail })),
+      recentIssues: latestForMonth(issueRows, currentPrefix, 5).map((row) => ({
+        date: row.date,
+        workzone: row.workzone,
+        reason: row.reason,
+        detail: row.detail,
+      })),
       monthlyLines: monthlyRows
         .filter((row) => row.month <= currentMonth.month)
         .slice(-6)
@@ -417,7 +423,8 @@ function buildRawSnapshot(zip) {
     delivery: {
       oneDayResultPct:
         Number((currentTrip.oneDay * 100).toFixed(1)) || Number((currentBreakdown.achievement * 100).toFixed(1)),
-      oneDayTargetPct: 95,
+      oneDayTargetPct: targets.oneDayPct,
+      tripUtilizationTargetPct: targets.tripUtilizationPct,
       previousOneDayResultPct: Number((previousTrip.oneDay * 100).toFixed(1)),
       tripCount: currentTrip.trips,
       tripTarget: currentTrip.target,
@@ -437,7 +444,8 @@ function buildRawSnapshot(zip) {
         ng: lorryPlan.filter((slot) => slot.arrivalStatus === 'NG').length,
       },
       recentTransporterIssues: transporterToDate.slice(0, 3),
-      monthlyTrend: tripRows.slice(-6).map((row) => ({ month: row.month, value: Number((row.oneDay * 100).toFixed(1)) })),      lorryPlan,
+      monthlyTrend: tripRows.slice(-6).map((row) => ({ month: row.month, value: Number((row.oneDay * 100).toFixed(1)) })),
+      lorryPlan,
     },
   };
 }
@@ -466,7 +474,8 @@ that the single-file build embeds. The workbook is never modified.`);
   const input = resolve(args.input);
   const output = resolve(args.output);
   const zip = readZip(await readFile(input));
-  const raw = buildRawSnapshot(zip);
+  const workbookModifiedAt = (await stat(input)).mtime.toISOString();
+  const raw = buildRawSnapshot(zip, workbookModifiedAt);
 
   await mkdir(dirname(output), { recursive: true });
   await writeFile(output, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');

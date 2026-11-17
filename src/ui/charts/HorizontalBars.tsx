@@ -5,11 +5,14 @@ export function HorizontalBars({
   points,
   suffix = '',
   decimals = 0,
+  belowIsAlert,
 }: {
   title: string;
   points: SeriesPoint[];
   suffix?: string;
   decimals?: number;
+  /** Values below this threshold are flagged as an alert, e.g. a region under its delivery target. */
+  belowIsAlert?: number;
 }) {
   const max = Math.max(1, ...points.map((point) => point.value));
 
@@ -19,18 +22,21 @@ export function HorizontalBars({
         <p className="chart-empty">No breakdown for this month</p>
       ) : (
         <ul className="bar-list">
-          {points.map((point) => (
-            <li key={point.label} className="bar-row">
-              <span className="bar-label">{point.label}</span>
-              <span className="bar-track" aria-hidden="true">
-                <span className="bar-fill" style={{ width: `${(point.value / max) * 100}%` }} />
-              </span>
-              <span className="bar-value">
-                {point.value.toFixed(decimals)}
-                {suffix}
-              </span>
-            </li>
-          ))}
+          {points.map((point) => {
+            const isAlert = belowIsAlert !== undefined && point.value < belowIsAlert;
+            return (
+              <li key={point.label} className="bar-row" data-tone={isAlert ? 'danger' : undefined}>
+                <span className="bar-label">{point.label}</span>
+                <span className="bar-value">
+                  {point.value.toFixed(decimals)}
+                  {suffix}
+                </span>
+                <span className="bar-track" aria-hidden="true">
+                  <span className="bar-fill" style={{ width: `${(point.value / max) * 100}%` }} />
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
