@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>WH Outbound · SC / Delivery</title>
+    <script>
+      // Fit the fixed 1920x1080 wallboard canvas before first paint: no scroll, no reflow.
+      (function () {
+        function fit() {
+          var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+          document.documentElement.style.setProperty('--stage-scale', String(scale));
+        }
+        fit();
+        window.addEventListener('resize', fit);
+        window.addEventListener('orientationchange', fit);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

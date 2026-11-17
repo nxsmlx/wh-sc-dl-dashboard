@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Wallboard admin</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0e1214;
+        --panel: #151b1e;
+        --ink: #eef2f3;
+        --muted: #93a1a6;
+        --line: rgb(255 255 255 / 0.12);
+        --accent: #d8a75b;
+        --danger: #d4776a;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); }
+      main { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; }
+      h1 { font-size: 22px; letter-spacing: -0.02em; margin: 0 0 4px; }
+      p.lead { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+      section { border: 1px solid var(--line); border-radius: 10px; padding: 20px; background: var(--panel); margin-bottom: 16px; }
+      label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+      label:first-child { margin-top: 0; }
+      input, textarea, select, button { font: inherit; width: 100%; }
+      input, textarea, select {
+        background: #0e1214;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px 12px;
+      }
+      textarea { resize: vertical; min-height: 84px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .check { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+      .check input { width: 18px; height: 18px; }
+      .check span { font-size: 14px; }
+      button {
+        margin-top: 18px;
+        padding: 11px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #1a1205; font-weight: 600; }
+      button.link { border: 0; background: transparent; color: var(--muted); width: auto; margin: 0; padding: 0; }
+      .actions { display: flex; align-items: center; gap: 16px; }
+      .status { font-size: 13px; color: var(--muted); min-height: 18px; }
+      .status[data-tone='error'] { color: var(--danger); }
+      .hidden { display: none; }
+      .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Wallboard admin</h1>
+      <p class="lead">Mesej dan kawalan ini sampai ke smartboard dalam beberapa saat.</p>
+
+      <section id="login-section">
+        <label for="password">Admin password</label>
+        <input id="password" type="password" autocomplete="current-password" />
+        <button class="primary" id="login">Sign in</button>
+        <p class="status" id="login-status" role="status"></p>
+      </section>
+
+      <section id="control-section" class="hidden">
+        <label for="notice">Notice on the board</label>
+        <textarea id="notice" maxlength="280" placeholder="Contoh: Meeting 3 petang di bilik mesyuarat."></textarea>
+        <p class="hint">Kosongkan untuk buang notice. Maksimum 280 aksara.</p>
+
+        <label for="expires">Auto-hide at (optional)</label>
+        <input id="expires" type="datetime-local" />
+
+        <div class="row">
+          <div>
+            <label for="page">Force screen</label>
+            <select id="page">
+              <option value="">Auto rotate</option>
+              <option value="shipping">Shipping check</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </div>
+          <div>
+            <label for="theme">Board theme</label>
+            <select id="theme">
+              <option value="">Device setting</option>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="check">
+          <input id="paused" type="checkbox" />
+          <span>Pause 30-second rotation</span>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="save">Publish</button>
+          <button id="clear">Clear notice</button>
+          <button class="link" id="logout">Sign out</button>
+        </div>
+        <p class="status" id="save-status" role="status"></p>
+      </section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let current = null;
+
+      function setStatus(id, text, tone) {
+        const element = $(id);
+        element.textContent = text;
+        element.dataset.tone = tone || '';
+      }
+
+      async function api(path, options) {
+        const response = await fetch(path, {
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          ...options,
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${response.status}`);
+        }
+        return response.json();
+      }
+
+      function fill(state) {
+        current = state;
+        $('notice').value = state.notice ? state.notice.text : '';
+        $('expires').value = state.notice && state.notice.expiresAt ? toLocalInput(state.notice.expiresAt) : '';
+        $('page').value = state.forcedPage || '';
+        $('theme').value = state.theme || '';
+        $('paused').checked = state.paused === true;
+      }
+
+      function toLocalInput(iso) {
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return '';
+        const pad = (value) => String(value).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
+      async function refresh() {
+        try {
+          const state = await api('/api/state');
+          fill(state);
+          $('login-section').classList.add('hidden');
+          $('control-section').classList.remove('hidden');
+          setStatus('save-status', state.updatedAt ? `Last published ${new Date(state.updatedAt).toLocaleString()}` : 'Belum ada kawalan dihantar.');
+        } catch {
+          $('login-section').classList.remove('hidden');
+          $('control-section').classList.add('hidden');
+        }
+      }
+
+      $('login').addEventListener('click', async () => {
+        setStatus('login-status', '');
+        try {
+          await api('/api/login', { method: 'POST', body: JSON.stringify({ password: $('password').value }) });
+          $('password').value = '';
+          await refresh();
+        } catch (error) {
+          setStatus('login-status', error.message, 'error');
+        }
+      });
+
+      $('password').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') $('login').click();
+      });
+
+      $('save').addEventListener('click', async () => {
+        const text = $('notice').value.trim();
+        const payload = {
+          notice: text ? { text, expiresAt: $('expires').value ? new Date($('expires').value).toISOString() : null } : null,
+          forcedPage: $('page').value || null,
+          theme: $('theme').value || null,
+          paused: $('paused').checked,
+        };
+        try {
+          const state = await api('/api/state', { method: 'POST', body: JSON.stringify(payload) });
+          fill(state);
+          setStatus('save-status', 'Published. Board akan ikut dalam beberapa saat.');
+        } catch (error) {
+          setStatus('save-status', error.message, 'error');
+          if (error.message === 'Not signed in') refresh();
+        }
+      });
+
+      $('clear').addEventListener('click', () => {
+        $('notice').value = '';
+        $('expires').value = '';
+        $('save').click();
+      });
+
+      $('logout').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+        await refresh();
+      });
+
+      refresh();
+    </script>
+  </body>
+</html>

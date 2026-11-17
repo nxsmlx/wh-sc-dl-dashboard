@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+*.local
+.DS_Store
+src/data/generated-dashboard.json
+.superpowers
+tsconfig.tsbuildinfo
+data
+.env
