@@ -1,4 +1,6 @@
 import type { ShippingSnapshot } from '../../data/types';
+import { getShippingAttention } from '../attention/attention';
+import { AttentionRail } from '../../ui/AttentionRail';
 import { IssueList } from '../../ui/IssueList';
 import { StatusStream } from '../../ui/StatusStream';
 import { TrendLine } from '../../ui/charts/TrendLine';
@@ -7,9 +9,10 @@ import './shipping-view.css';
 
 const number = (value: number): string => value.toLocaleString('en-GB');
 
-export function ShippingView({ data }: { data: ShippingSnapshot }) {
+export function ShippingView({ data, onDetails }: { data: ShippingSnapshot; onDetails?: () => void }) {
   const direction = data.lineDeltaPct < 0 ? 'down' : data.lineDeltaPct > 0 ? 'up' : 'flat';
   const issueDirection = data.issueCount - data.previousIssueCount;
+  const attention = getShippingAttention(data);
 
   return (
     <section className="surface shipping-view">
@@ -50,6 +53,14 @@ export function ShippingView({ data }: { data: ShippingSnapshot }) {
           </div>
         </dl>
       </div>
+
+      <AttentionRail signal={attention} />
+
+      {onDetails ? (
+        <button type="button" className="detail-link" onClick={onDetails}>
+          View operations detail
+        </button>
+      ) : null}
 
       <div className="ship-status">
         <StatusStream statuses={data.shipmentStatuses} />

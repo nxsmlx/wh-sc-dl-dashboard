@@ -7,6 +7,7 @@ import { ROTATION_DURATION_MS } from '../features/rotation/rotation';
 import { useRotation } from '../features/rotation/use-rotation';
 import { DeliveryView } from '../features/delivery/DeliveryView';
 import { ShippingView } from '../features/shipping/ShippingView';
+import { OperationsDetail } from '../features/detail/OperationsDetail';
 import { DataState } from '../ui/DataState';
 import { WallboardShell } from '../ui/WallboardShell';
 import { useTheme } from '../ui/ThemeToggle';
@@ -16,24 +17,27 @@ export interface AppProps {
   dataSource?: DashboardDataSource;
   durationMs?: number;
   staleAfterMs?: number;
+  remotePollMs?: number;
 }
 
 export function App({
   dataSource,
   durationMs = ROTATION_DURATION_MS,
   staleAfterMs = 24 * 60 * 60 * 1000,
+  remotePollMs,
 }: AppProps) {
   const source = useMemo(() => dataSource ?? createDefaultDataSource(), [dataSource]);
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [theme, setTheme] = useTheme();
   const initialPage = useMemo(() => {
     const requested = new URLSearchParams(window.location.search).get('page');
     return requested === 'delivery' ? 'delivery' : 'shipping';
   }, []);
   const rotation = useRotation({ durationMs, initialPage });
-  const { remote } = useRemoteState();
+  const { remote } = useRemoteState('/api/state', remotePollMs);
 
   useEffect(() => {
     if (remote.forcedPage && remote.forcedPage !== rotation.page) {
@@ -42,10 +46,16 @@ export function App({
   }, [remote.forcedPage, rotation.page]);
 
   useEffect(() => {
-    if (remote.paused !== rotation.isPaused) {
+    if (!isDetailOpen && remote.paused !== rotation.isPaused) {
       rotation.togglePause();
     }
-  }, [remote.paused, rotation.isPaused]);
+  }, [isDetailOpen, remote.paused, rotation.isPaused]);
+
+  useEffect(() => {
+    if (isDetailOpen && !rotation.isPaused) {
+      rotation.togglePause();
+    }
+  }, [isDetailOpen, rotation.isPaused]);
 
   useEffect(() => {
     if (remote.theme && remote.theme !== theme) {
@@ -94,12 +104,13 @@ export function App({
 
   const freshness = getFreshness(snapshot.lastUpdatedAt, new Date(), staleAfterMs);
   const notice = activeNotice(remote);
-  const isShipping = rotation.page === 'shipping';
+  const activePage = remote.forcedPage ?? rotation.page;
+  const isShipping = activePage === 'shipping';
   const monthLabel = isShipping ? snapshot.shipping.monthLabel : snapshot.delivery.monthLabel;
 
   return stage(
     <WallboardShell
-      page={rotation.page}
+      page={activePage}
       rotation={rotation}
       durationMs={durationMs}
       freshness={freshness}
@@ -132,7 +143,19 @@ export function App({
           Demo data. Run <code>npm run data:import</code> to load the workbook.
         </p>
       ) : null}
-      {isShipping ? <ShippingView data={snapshot.shipping} /> : <DeliveryView data={snapshot.delivery} />}
+      {isDetailOpen ? (
+        <OperationsDetail
+          page={activePage}
+          snapshot={snapshot}
+          onBack={() => {
+            setIsDetailOpen(false);
+          }}
+        />
+      ) : isShipping ? (
+        <ShippingView data={snapshot.shipping} onDetails={() => setIsDetailOpen(true)} />
+      ) : (
+        <DeliveryView data={snapshot.delivery} onDetails={() => setIsDetailOpen(true)} />
+      )}
     </WallboardShell>,
   );
 }

@@ -244,6 +244,69 @@ button {
   color: var(--danger);
 }
 
+.attention-rail {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-height: 42px;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+.attention-marker {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+
+.attention-rail[data-tone='warning'] .attention-marker {
+  background: var(--warning);
+}
+
+.attention-rail[data-tone='danger'] .attention-marker {
+  background: var(--danger);
+}
+
+.attention-rail[data-tone='success'] .attention-marker {
+  background: var(--success);
+}
+
+.attention-label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.attention-value {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.attention-reason {
+  font-size: 13px;
+}
+
+.detail-link {
+  align-self: flex-start;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+}
+
 /* Data state */
 .data-state {
   margin: auto;

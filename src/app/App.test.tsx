@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -24,7 +24,7 @@ describe('App wallboard', () => {
 
   it('renders Shipping check first and switches to Delivery after 30 seconds', async () => {
     vi.useFakeTimers();
-    render(<App dataSource={createFixtureDataSource()} />);
+    render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);
     await flush();
 
     expect(screen.getByRole('heading', { name: 'Shipping check' })).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('App wallboard', () => {
 
   it('does not switch pages before the 30-second boundary', async () => {
     vi.useFakeTimers();
-    render(<App dataSource={createFixtureDataSource()} />);
+    render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);
     await flush();
 
     await act(async () => {
@@ -111,7 +111,7 @@ describe('App wallboard', () => {
 
     expect(await screen.findByText('Meeting 3pm at meeting room')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Resume' })).toBeInTheDocument();
   });
 
   it('marks stale data without hiding the KPI', async () => {
@@ -125,5 +125,25 @@ describe('App wallboard', () => {
 
     expect(await screen.findByText(/Showing data from/)).toBeInTheDocument();
     expect(screen.getByText('14,650')).toBeInTheDocument();
+  });
+
+  it('pauses rotation in operations detail and resumes after returning', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        json: async () => ({}),
+      })),
+    );
+    render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'View operations detail' }));
+
+    expect(screen.getByRole('heading', { name: 'Shipping check operations' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back to wallboard' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to wallboard' }));
+    expect(screen.getByRole('heading', { name: 'Shipping check' })).toBeInTheDocument();
   });
 });

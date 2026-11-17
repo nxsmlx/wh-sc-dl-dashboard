@@ -1,11 +1,13 @@
 import type { DeliverySnapshot } from '../../data/types';
+import { getDeliveryAttention } from '../attention/attention';
+import { AttentionRail } from '../../ui/AttentionRail';
 import { HorizontalBars } from '../../ui/charts/HorizontalBars';
 import { TrendLine } from '../../ui/charts/TrendLine';
 import './delivery-view.css';
 
 const pct = (value: number): string => `${value.toFixed(1)}%`;
 
-export function DeliveryView({ data }: { data: DeliverySnapshot }) {
+export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDetails?: () => void }) {
   const utilization = data.tripTarget > 0 ? (data.tripCount / data.tripTarget) * 100 : 0;
   const sameDayShare = data.totalLineCount > 0 ? (data.sameDayLineCount / data.totalLineCount) * 100 : 0;
   const delta = data.oneDayResultPct - data.previousOneDayResultPct;
@@ -16,6 +18,7 @@ export function DeliveryView({ data }: { data: DeliverySnapshot }) {
     { key: 'one', label: '1 day', count: data.mix.oneDay },
     { key: 'more', label: 'More than 1 day', count: data.mix.moreThanOneDay },
   ];
+  const attention = getDeliveryAttention(data);
 
   return (
     <section className="surface delivery-view">
@@ -52,6 +55,14 @@ export function DeliveryView({ data }: { data: DeliverySnapshot }) {
           </div>
         </dl>
       </div>
+
+      <AttentionRail signal={attention} />
+
+      {onDetails ? (
+        <button type="button" className="detail-link" onClick={onDetails}>
+          View operations detail
+        </button>
+      ) : null}
 
       <div className="del-lower">
         <section aria-labelledby="delivery-region-heading">
