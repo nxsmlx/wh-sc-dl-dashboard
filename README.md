@@ -58,9 +58,9 @@ Editing source needs no build step. Run the tests and build on one machine at a 
 
 - Fixed 1920×1080 board: KPI row on top, panel grid below, no page scroll.
 - Readable from the floor: no text below 18px; KPI figures 92px.
-- Steel blue is structure, cyan is the one live state, green/amber/red are status only. Amber always means warning.
+- Glass cards over an ambient aurora background. Indigo/violet is structure, aqua is the one live state, green/amber/rose are status only. Amber always means warning; the aurora never encodes data.
 - Every status is an icon plus a word, never colour alone. KPI status uses the official targets in the workbook `Lists` sheet.
-- Barlow / Barlow Condensed are bundled (SIL OFL, `src/assets/fonts`) and inlined into `dist/index.html`.
+- Manrope (UI) and Space Grotesk (figures, headings) are bundled as variable fonts (SIL OFL, `src/assets/fonts`) and inlined into `dist/index.html`.
 - Dark is the default wallboard theme; light stays available.
 - "Workbook updated" is the workbook file time, not the import time. Panels name the report month they show.
 
