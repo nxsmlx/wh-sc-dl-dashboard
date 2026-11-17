@@ -10,7 +10,6 @@ import './shipping-view.css';
 const number = (value: number): string => value.toLocaleString('en-GB');
 
 export function ShippingView({ data, onDetails }: { data: ShippingSnapshot; onDetails?: () => void }) {
-  const direction = data.lineDeltaPct < 0 ? 'down' : data.lineDeltaPct > 0 ? 'up' : 'flat';
   const issueDirection = data.issueCount - data.previousIssueCount;
   const attention = getShippingAttention(data);
 
@@ -18,68 +17,29 @@ export function ShippingView({ data, onDetails }: { data: ShippingSnapshot; onDe
     <section className="surface shipping-view">
       <div className="surface-heading">
         <h1 className="surface-title">Shipping check</h1>
+        <p className="surface-note">Performance · {data.monthLabel}</p>
       </div>
 
-      <div className="ship-hero">
-        <div className="ship-primary">
-          <span className="hero-label">Lines this month</span>
-          <span className="hero-value">{number(data.lineCount)}</span>
-          <span className="hero-context" data-direction={direction}>
-            {direction === 'flat' ? 'level' : `${data.lineDeltaPct > 0 ? '+' : ''}${data.lineDeltaPct}%`} vs{' '}
-            {number(data.previousLineCount)} lines last month
-          </span>
-          <TrendLine title="Lines by month" points={data.monthlyLines} />
-        </div>
-
-        <dl className="ship-figures">
-          <div>
-            <dt>Issues this month</dt>
-            <dd>{number(data.issueCount)}</dd>
-            <p>
-              {issueDirection === 0
-                ? 'same as last month'
-                : `${issueDirection > 0 ? '+' : ''}${issueDirection} issues vs last month`}
-            </p>
-          </div>
-          <div>
-            <dt>Issues per 10k lines</dt>
-            <dd>{data.issueRatePer10k.toFixed(1)}</dd>
-            <p>last month {data.previousIssueRatePer10k.toFixed(1)}</p>
-          </div>
-          <div>
-            <dt>Quantity variance</dt>
-            <dd>{number(data.qtyVarianceTotal)}</dd>
-            <p>pieces short or extra</p>
-          </div>
-        </dl>
+      <div className="board-kpi-row">
+        <div className="board-kpi kpi-primary"><span>Lines this month</span><strong>{number(data.lineCount)}</strong><small>{data.lineDeltaPct > 0 ? '+' : ''}{data.lineDeltaPct}% vs last month</small></div>
+        <div className="board-kpi"><span>Issues</span><strong>{number(data.issueCount)}</strong><small>{issueDirection > 0 ? '+' : ''}{issueDirection} vs last month</small></div>
+        <div className="board-kpi"><span>Issues / 10k</span><strong>{data.issueRatePer10k.toFixed(1)}</strong><small>last month {data.previousIssueRatePer10k.toFixed(1)}</small></div>
+        <div className="board-kpi"><span>Quantity variance</span><strong>{number(data.qtyVarianceTotal)}</strong><small>pieces short or extra</small></div>
       </div>
 
-      <AttentionRail signal={attention} />
-
-      {onDetails ? (
-        <button type="button" className="detail-link" onClick={onDetails}>
-          View operations detail
-        </button>
-      ) : null}
-
-      <div className="ship-status">
-        <StatusStream statuses={data.shipmentStatuses} />
+      <div className="board-panels shipping-panels">
+        <section className="board-panel board-chart"><h2>Monthly line movement</h2><TrendLine title="Lines by month" points={data.monthlyLines} /></section>
+        <section className="board-panel"><h2>Shipment status</h2><StatusStream statuses={data.shipmentStatuses} /></section>
+        <section className="board-panel board-attention"><AttentionRail signal={attention} /></section>
+        <section className="board-panel"><h2>Issue reasons</h2><HorizontalBars title="Issues this month" points={data.reasonBreakdown} /></section>
+        <section className="board-panel"><h2>Priority workzones</h2><HorizontalBars title="Issues this month" points={data.workzoneBreakdown} /></section>
+        <section className="board-panel board-wide"><h2>Latest issues</h2><IssueList issues={data.recentIssues} /></section>
       </div>
 
-      <div className="ship-lower">
-        <section aria-labelledby="shipping-issues-heading">
-          <h2 id="shipping-issues-heading">Recent issues</h2>
-          <IssueList issues={data.recentIssues} />
-        </section>
-        <section className="ship-reasons" aria-labelledby="shipping-reasons-heading">
-          <h2 id="shipping-reasons-heading">Issues by reason</h2>
-          <HorizontalBars title="Issues this month" points={data.reasonBreakdown} />
-        </section>
-        <section className="ship-zones" aria-labelledby="shipping-zones-heading">
-          <h2 id="shipping-zones-heading">Issues by workzone</h2>
-          <HorizontalBars title="Issues this month" points={data.workzoneBreakdown} />
-        </section>
+      <div className="board-actions">
+        {onDetails ? <button type="button" className="detail-link" onClick={onDetails}>View operations detail</button> : null}
       </div>
+
     </section>
   );
 }

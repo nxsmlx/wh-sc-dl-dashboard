@@ -337,6 +337,141 @@ button {
   text-decoration: underline;
 }
 
+.surface-note {
+  font-family: var(--font-ui);
+  color: var(--ink-muted);
+  font-size: 1rem;
+}
+
+.board-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--rule);
+}
+
+.board-kpi {
+  min-width: 0;
+  min-height: 150px;
+  padding: 1rem 1.5rem;
+  border-right: 1px solid var(--rule);
+  background: var(--bg-tint);
+}
+
+.board-kpi:last-child {
+  border-right: 0;
+}
+
+.board-kpi span,
+.board-kpi small {
+  display: block;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+}
+
+.board-kpi span {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.board-kpi strong {
+  display: block;
+  margin: .25rem 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2.7rem, 4vw, 4.8rem);
+  font-weight: 800;
+  line-height: .9;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-kpi.kpi-primary strong {
+  font-size: clamp(3.8rem, 6vw, 6rem);
+}
+
+.board-panels {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+.board-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 1rem 1.5rem;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.board-panel:nth-child(3n) {
+  border-right: 0;
+}
+
+.board-panel h2 {
+  margin: 0 0 .7rem;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.board-chart .trend-line {
+  margin: 0;
+}
+
+.board-panel .attention-rail {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  border: 0;
+  border-left: 4px solid var(--warning);
+}
+
+.board-panel .status-stream {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+
+.board-panel .status-item {
+  min-width: 0;
+  min-height: 52px;
+  padding: .55rem 0;
+  margin: 0;
+  border-right: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.board-panel .status-item:last-child {
+  border-bottom: 0;
+}
+
+.board-wide {
+  grid-column: span 2;
+}
+
+.board-actions {
+  min-height: 42px;
+  padding: .7rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.shipping-view .ship-legacy-data,
+.shipping-view .ship-lower {
+  display: none;
+}
+
 .surface-heading {
   position: relative;
   padding: 1.1rem clamp(var(--space-4), 2.2vw, var(--space-8)) 0.8rem;

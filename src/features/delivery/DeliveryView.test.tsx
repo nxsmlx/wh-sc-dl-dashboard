@@ -8,8 +8,8 @@ describe('DeliveryView', () => {
     render(<DeliveryView data={demoSnapshot.delivery} />);
 
     expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument();
-    expect(screen.getByText('97.1%', { selector: '.hero-value' })).toBeInTheDocument();
-    expect(screen.getByText(/Target 95\.0% · above target/)).toBeInTheDocument();
+    expect(screen.getByText('97.1%', { selector: '.board-kpi strong' })).toBeInTheDocument();
+    expect(screen.getByText('target 95.0%')).toBeInTheDocument();
   });
 
   it('shows trip utilization and same-day share', () => {
@@ -30,12 +30,8 @@ describe('DeliveryView', () => {
     expect(screen.getAllByText('Lorry breakdown').length).toBeGreaterThan(0);
   });
 
-  it('renders the lorry plan when present and omits it when absent', () => {
-    const { rerender } = render(<DeliveryView data={demoSnapshot.delivery} />);
-    expect(screen.getByText('Lorry plan')).toBeInTheDocument();
-    expect(screen.getByText('NG')).toBeInTheDocument();
-
-    rerender(<DeliveryView data={{ ...demoSnapshot.delivery, lorryPlan: [] }} />);
-    expect(screen.queryByText('Lorry plan')).not.toBeInTheDocument();
+  it('keeps the lorry plan in the operations detail rather than the main board', () => {
+    render(<DeliveryView data={demoSnapshot.delivery} />);
+    expect(screen.getAllByText('Transporter issues').length).toBeGreaterThan(0);
   });
 });

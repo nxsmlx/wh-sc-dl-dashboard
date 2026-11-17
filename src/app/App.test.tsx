@@ -35,7 +35,7 @@ describe('App wallboard', () => {
     });
 
     expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument();
-    expect(screen.getByText('97.1%', { selector: '.hero-value' })).toBeInTheDocument();
+    expect(screen.getByText('97.1%', { selector: '.board-kpi strong' })).toBeInTheDocument();
   });
 
   it('does not switch pages before the 30-second boundary', async () => {

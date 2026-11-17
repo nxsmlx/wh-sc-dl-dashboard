@@ -9,13 +9,13 @@ describe('ShippingView', () => {
 
     expect(screen.getByRole('heading', { name: 'Shipping check' })).toBeInTheDocument();
     expect(screen.getByText('14,650')).toBeInTheDocument();
-    expect(screen.getByText(/-7\.6% vs 15,851 lines last month/)).toBeInTheDocument();
+    expect(screen.getByText('-7.6% vs last month')).toBeInTheDocument();
   });
 
   it('shows issue pressure and all shipment statuses', () => {
     render(<ShippingView data={demoSnapshot.shipping} />);
 
-    expect(screen.getByText('Issues this month', { selector: 'dt' })).toBeInTheDocument();
+    expect(screen.getByText('Issues')).toBeInTheDocument();
     expect(screen.getByText('27')).toBeInTheDocument();
     expect(screen.getByText('18.4')).toBeInTheDocument();
     expect(screen.getByText('Not yet invoice')).toBeInTheDocument();

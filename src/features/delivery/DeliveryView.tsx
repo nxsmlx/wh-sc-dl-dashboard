@@ -10,8 +10,6 @@ const pct = (value: number): string => `${value.toFixed(1)}%`;
 export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDetails?: () => void }) {
   const utilization = data.tripTarget > 0 ? (data.tripCount / data.tripTarget) * 100 : 0;
   const sameDayShare = data.totalLineCount > 0 ? (data.sameDayLineCount / data.totalLineCount) * 100 : 0;
-  const delta = data.oneDayResultPct - data.previousOneDayResultPct;
-  const meetsTarget = data.oneDayResultPct >= data.oneDayTargetPct;
   const mixTotal = Math.max(1, data.mix.sameDay + data.mix.oneDay + data.mix.moreThanOneDay);
   const mixSegments = [
     { key: 'same', label: 'Same day', count: data.mix.sameDay },
@@ -24,56 +22,28 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
     <section className="surface delivery-view">
       <div className="surface-heading">
         <h1 className="surface-title">Delivery</h1>
+        <p className="surface-note">Performance · {data.monthLabel}</p>
       </div>
 
-      <div className="del-hero">
-        <div className="del-primary">
-          <span className="hero-label">1-day delivery result</span>
-          <span className="hero-value">{pct(data.oneDayResultPct)}</span>
-          <span className="hero-context" data-meets-target={meetsTarget ? 'yes' : 'no'}>
-            Target {pct(data.oneDayTargetPct)} · {meetsTarget ? 'above target' : 'below target'} ·{' '}
-            {delta >= 0 ? '+' : ''}
-            {delta.toFixed(1)} pts vs last month
-          </span>
-          <TrendLine title="1-day result by month" points={data.monthlyTrend} suffix="%" />
-        </div>
-
-        <dl className="del-figures">
-          <div>
-            <dt>Trip utilization</dt>
-            <dd>{pct(utilization)}</dd>
-            <p>
-              {data.tripCount.toLocaleString('en-GB')} / {data.tripTarget.toLocaleString('en-GB')} trips
-            </p>
-          </div>
-          <div>
-            <dt>Same-day delivery</dt>
-            <dd>{pct(sameDayShare)}</dd>
-            <p>
-              {data.sameDayLineCount.toLocaleString('en-GB')} / {data.totalLineCount.toLocaleString('en-GB')} lines
-            </p>
-          </div>
-        </dl>
+      <div className="board-kpi-row">
+        <div className="board-kpi kpi-primary"><span>1-day result</span><strong>{pct(data.oneDayResultPct)}</strong><small>target {pct(data.oneDayTargetPct)}</small></div>
+        <div className="board-kpi"><span>Trip utilization</span><strong>{pct(utilization)}</strong><small>{data.tripCount} / {data.tripTarget} trips</small></div>
+        <div className="board-kpi"><span>Same-day delivery</span><strong>{pct(sameDayShare)}</strong><small>{data.sameDayLineCount.toLocaleString('en-GB')} / {data.totalLineCount.toLocaleString('en-GB')} lines</small></div>
+        <div className="board-kpi"><span>Transporter issues</span><strong>{data.transporterIssueCount}</strong><small>{data.transporterIssuesYearToDate} year to date</small></div>
       </div>
 
-      <AttentionRail signal={attention} />
-
-      {onDetails ? (
-        <button type="button" className="detail-link" onClick={onDetails}>
-          View operations detail
-        </button>
-      ) : null}
-
-      <div className="del-lower">
-        <section aria-labelledby="delivery-region-heading">
-          <h2 id="delivery-region-heading">1-day result by region</h2>
+      <div className="board-panels delivery-panels">
+        <section className="board-panel board-chart"><h2>1-day result movement</h2><TrendLine title="1-day result by month" points={data.monthlyTrend} suffix="%" /></section>
+        <section className="board-panel"><h2>Region performance</h2>
           <HorizontalBars
             title="Achievement this month"
             points={data.regions.map((region) => ({ label: region.region, value: region.oneDayPct }))}
             suffix="%"
             decimals={1}
           />
-
+        </section>
+        <section className="board-panel board-attention"><AttentionRail signal={attention} /></section>
+        <section className="board-panel"><h2>Delivery mix</h2>
           <div className="del-mix">
             <p className="chart-title">Delivery mix</p>
             <div
@@ -104,9 +74,7 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
             </ul>
           </div>
         </section>
-
-        <section className="del-issues" aria-labelledby="delivery-issues-heading">
-          <h2 id="delivery-issues-heading">Transporter issues</h2>
+        <section className="board-panel"><h2>Transporter issues</h2>
           <p className="del-issue-count">
             {data.transporterIssueCount} this month · {data.transporterIssuesYearToDate} year to date
           </p>
@@ -131,30 +99,9 @@ export function DeliveryView({ data, onDetails }: { data: DeliverySnapshot; onDe
             <p className="chart-empty">No transporter issues logged</p>
           )}
 
-          {data.lorryPlan.length > 0 ? (
-            <div className="lorry-plan" aria-label="Lorry plan today">
-              <p className="chart-title">
-                Lorry plan
-                <span className="lorry-punctuality">
-                  {data.lorryPunctuality.ok} on time · {data.lorryPunctuality.ng} late
-                </span>
-              </p>
-              <ol className="lorry-slots">
-                {data.lorryPlan.map((slot) => (
-                  <li key={`${slot.timeSlot}-${slot.plate}`} className="lorry-slot">
-                    <span className="lorry-time">{slot.timeSlot}</span>
-                    <span className="lorry-lot">{slot.lot}</span>
-                    <span className="lorry-plate">{slot.plate}</span>
-                    <span className="lorry-status" data-status={slot.arrivalStatus}>
-                      {slot.arrivalStatus}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
         </section>
       </div>
+      <div className="board-actions">{onDetails ? <button type="button" className="detail-link" onClick={onDetails}>View operations detail</button> : null}</div>
     </section>
   );
 }
