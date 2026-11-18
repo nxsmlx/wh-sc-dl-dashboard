@@ -11,7 +11,9 @@
     "typecheck": "tsc -b --noEmit",
     "data:import": "node scripts/import-workbook.mjs",
     "start": "node server/index.mjs",
-    "data:export": "node scripts/import-workbook.mjs"
+    "data:export": "node scripts/import-workbook.mjs",
+    "ship": "node scripts/ship.mjs",
+    "watch:workbook": "node scripts/watch-workbook.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

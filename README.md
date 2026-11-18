@@ -84,28 +84,72 @@ Open `http://<server>:8080/admin`.
 
 **If you recreate the container without the `./data` volume, published admin state is lost.** Always use `docker compose up` (which mounts `./data`), not a bare `docker run`.
 
-## Deploy on a VPS
+## Deploy: push once, the VPS updates itself
+
+GitHub Actions builds, tests and pushes the image, then switches the VPS over.
+**A failed build never reaches the VPS**, so the last working version keeps
+running.
+
+On the operating PC:
 
 ```bash
-git clone <repo> wallboard && cd wallboard
-cp env.example .env        # edit ADMIN_PASSWORD
-docker compose up -d --build
+npm run ship                    # commit everything, push, wait for the deploy
+npm run ship -- -m "message"    # with your own commit message
 ```
 
-Update later:
+That is the whole operation. Nothing is run on the VPS by hand.
+
+### One-time setup
+
+**1. Create a deploy key for the VPS** (on the VPS):
 
 ```bash
-git pull
-docker compose up -d --build
+ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/github_deploy -N ""
+cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/github_deploy          # paste this as VPS_SSH_KEY
 ```
 
-Workbook data is not committed. On a machine that has the workbook run:
+**2. Create a GitHub token that can read packages** (Settings → Developer
+settings → Personal access tokens → *read:packages*). The VPS uses it to pull
+the image.
+
+**3. Add these repository secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `VPS_HOST` | IP or hostname of the VPS |
+| `VPS_USER` | SSH user, e.g. `root` |
+| `VPS_PORT` | SSH port (optional, defaults to 22) |
+| `VPS_SSH_KEY` | contents of the private key from step 1 |
+| `VPS_APP_DIR` | directory holding `docker-compose.yml`, e.g. `/opt/stacks/wh-sc-dl-dashboard` |
+| `GHCR_USER` | your GitHub username |
+| `GHCR_TOKEN` | token from step 2 |
+
+**4. Prepare the VPS directory once:**
 
 ```bash
-npm run data:import -- --input "<workbook path>" --output data/dashboard.json
+mkdir -p /opt/stacks/wh-sc-dl-dashboard && cd /opt/stacks/wh-sc-dl-dashboard
+git clone git@github.com:nxsmlx/wh-sc-dl-dashboard.git .
+cp env.example .env        # set ADMIN_PASSWORD, SESSION_SECRET, INGEST_TOKEN
 ```
 
-then copy `data/dashboard.json` to the VPS `data/` directory (or let the Docker volume mount it). Without that file the board shows embedded data from the build, or demo data.
+After that, every `npm run ship` updates the board.
+
+### Sending workbook data to the VPS
+
+The board reads `/api/dashboard` on load, so fresh data does not need a rebuild:
+
+```bash
+WORKBOOK="<path to Dashboard for SC and Delivery Data.xlsx>" \
+INGEST_URL="http://<vps>:8080/api/dashboard" \
+INGEST_TOKEN="<same INGEST_TOKEN as the VPS>" \
+npm run watch:workbook
+```
+
+It checks the workbook every 30 seconds, waits until OneDrive has finished
+writing, imports, and uploads. A broken workbook is logged and skipped, so the
+board keeps the last good numbers. Set `INTERVAL_SECONDS` to change the rhythm,
+and run it under `tmux`, `systemd`, or Windows Task Scheduler to keep it alive.
 
 ## Project files
 

@@ -1,11 +1,22 @@
+# Wallboard server.
+#
+# On the VPS the image is built and tested by GitHub Actions, then pulled here:
+#   docker compose pull && docker compose up -d
+#
+# For local development, build the image yourself:
+#   docker compose up -d --build
+
 services:
   wallboard:
-    build: .
+    image: ghcr.io/nxsmlx/wh-sc-dl-dashboard:latest
+    build:
+      context: .
     restart: unless-stopped
     ports:
       - '8080:8080'
     environment:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
       SESSION_SECRET: ${SESSION_SECRET:-}
+      INGEST_TOKEN: ${INGEST_TOKEN:-}
     volumes:
       - ./data:/app/data
