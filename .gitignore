@@ -8,3 +8,4 @@ src/data/generated-dashboard.json
 tsconfig.tsbuildinfo
 /data
 .env
+logs

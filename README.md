@@ -148,8 +148,23 @@ npm run watch:workbook
 
 It checks the workbook every 30 seconds, waits until OneDrive has finished
 writing, imports, and uploads. A broken workbook is logged and skipped, so the
-board keeps the last good numbers. Set `INTERVAL_SECONDS` to change the rhythm,
-and run it under `tmux`, `systemd`, or Windows Task Scheduler to keep it alive.
+board keeps the last good numbers.
+
+To keep it running in WSL without an open terminal:
+
+```bash
+bash deploy/install-watcher.sh
+```
+
+The script asks for `INGEST_URL` and `INGEST_TOKEN` once, installs a systemd
+user service, and prints how to read the log:
+
+```bash
+journalctl --user -u wallboard-watch -f
+```
+
+Run `sudo loginctl enable-linger $USER` once so the watcher keeps running after
+you close the terminal.
 
 ## Project files
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=Workbook watcher for the warehouse wallboard
+Documentation=https://github.com/nxsmlx/wh-sc-dl-dashboard
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.t3/projects/wh-sc-dl-dashboard
+# systemd does not read nvm, so node's directory is added to PATH explicitly.
+Environment=PATH=%h/.nvm/versions/node/v26.13.1/bin:/usr/local/bin:/usr/bin:/bin
+# WORKBOOK, INTERVAL_SECONDS and the ingest credentials all come from this file,
+# because EnvironmentFile is the form that can hold a path containing spaces.
+EnvironmentFile=%h/.config/wh-wallboard/ingest.env
+ExecStart=/usr/bin/env node scripts/watch-workbook.mjs
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=default.target
