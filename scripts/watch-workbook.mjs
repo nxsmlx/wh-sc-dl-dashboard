@@ -63,6 +63,16 @@ async function rememberImported(mtimeMs) {
   await writeFile(STATE_FILE, `${JSON.stringify({ mtimeMs })}\n`, 'utf8');
 }
 
+/** True when the wallboard server already holds a snapshot. */
+async function serverHasSnapshot() {
+  try {
+    const response = await fetch(INGEST_URL, { method: 'GET' });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function importWorkbook() {
   const { execFile } = await import('node:child_process');
   const { promisify } = await import('node:util');
@@ -72,8 +82,7 @@ async function importWorkbook() {
   return JSON.parse(await readFile(output, 'utf8'));
 }
 
-async function upload(snapshot) {
-  const response = await fetch(INGEST_URL, {
+async function upload(snapshot) {  const response = await fetch(INGEST_URL, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
     body: JSON.stringify(snapshot),
@@ -103,7 +112,10 @@ async function tick() {
     }
 
     const lastImported = await readLastImported();
-    if (!isNewer(current, lastImported)) {
+    // If the server has no data yet (first run, or the VPS was rebuilt), the
+    // local "already imported" note must not stop the first upload.
+    const serverHasData = await serverHasSnapshot();
+    if (serverHasData && !isNewer(current, lastImported)) {
       return;
     }
 
