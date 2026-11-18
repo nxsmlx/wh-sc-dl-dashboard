@@ -15,6 +15,7 @@
  *   WORKBOOK           path to the .xlsx (required)
  *   INGEST_URL         e.g. https://wh.example.com/api/dashboard (required)
  *   INGEST_TOKEN       shared token the server expects (required)
+ *   INGEST_BASIC_AUTH  optional "user:password" when a proxy guards the board
  *   INTERVAL_SECONDS   poll interval, default 30
  *   LOG_FILE           default ./logs/workbook-watch.log
  *   STATE_FILE         remembers the last imported mtime, default ./logs/watch-state.json
@@ -27,6 +28,11 @@ const INTERVAL_SECONDS = Number(process.env.INTERVAL_SECONDS ?? 30);
 const WORKBOOK = process.env.WORKBOOK ? resolve(process.env.WORKBOOK) : '';
 const INGEST_URL = process.env.INGEST_URL ?? '';
 const INGEST_TOKEN = process.env.INGEST_TOKEN ?? '';
+const INGEST_BASIC_AUTH = process.env.INGEST_BASIC_AUTH ?? '';
+// Sent on every request when the board sits behind proxy Basic Auth.
+const AUTH_HEADERS = INGEST_BASIC_AUTH
+  ? { authorization: `Basic ${Buffer.from(INGEST_BASIC_AUTH).toString('base64')}` }
+  : {};
 const LOG_FILE = resolve(process.env.LOG_FILE ?? 'logs/workbook-watch.log');
 const STATE_FILE = resolve(process.env.STATE_FILE ?? 'logs/watch-state.json');
 
@@ -66,7 +72,7 @@ async function rememberImported(mtimeMs) {
 /** True when the wallboard server already holds a snapshot. */
 async function serverHasSnapshot() {
   try {
-    const response = await fetch(INGEST_URL, { method: 'GET' });
+    const response = await fetch(INGEST_URL, { method: 'GET', headers: AUTH_HEADERS });
     return response.ok;
   } catch {
     return false;
@@ -82,9 +88,10 @@ async function importWorkbook() {
   return JSON.parse(await readFile(output, 'utf8'));
 }
 
-async function upload(snapshot) {  const response = await fetch(INGEST_URL, {
+async function upload(snapshot) {
+  const response = await fetch(INGEST_URL, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
+    headers: { ...AUTH_HEADERS, 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
     body: JSON.stringify(snapshot),
   });
   const body = await response.json().catch(() => ({}));

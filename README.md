@@ -166,6 +166,17 @@ journalctl --user -u wallboard-watch -f
 Run `sudo loginctl enable-linger $USER` once so the watcher keeps running after
 you close the terminal.
 
+On the office Windows PC, the watcher runs as a hidden Scheduled Task that
+starts at logon and posts to `https://wh.systemsphq.com/outbound-board/`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy\enable-watcher-windows.ps1 `
+  -Token <INGEST_TOKEN> -BasicAuth "board:<board password>"
+```
+
+Credentials, log and state live in `%USERPROFILE%\.config\wh-wallboard\`
+(outside OneDrive). Log: `workbook-watch.log` in that folder.
+
 ## Project files
 
 - `src/data/` — read model, workbook mapping, freshness and data sources.
