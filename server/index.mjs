@@ -23,7 +23,11 @@ const ADMIN_PAGE = resolve('server/admin.html');
 const SESSION_SECRET = process.env.SESSION_SECRET ?? createHmac('sha256', 'wallboard').update(ADMIN_PASSWORD).digest('hex');
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const COOKIE_NAME = 'wallboard_admin';
+const INGEST_TOKEN = process.env.INGEST_TOKEN ?? '';
 const MAX_BODY_BYTES = 8 * 1024;
+const DASHBOARD_FILE = join(DATA_DIR, 'dashboard.json');
+const MAX_DASHBOARD_BYTES = 2 * 1024 * 1024;
+const DASHBOARD_REQUIRED = ['lastUpdatedAt', 'selectedMonth', 'shipping', 'delivery'];
 
 if (!ADMIN_PASSWORD) {
   console.error('ADMIN_PASSWORD is required');
@@ -125,8 +129,13 @@ function isValidSession(cookieHeader = '') {
 }
 
 function passwordMatches(candidate) {
-  const a = Buffer.from(String(candidate ?? ''));
-  const b = Buffer.from(ADMIN_PASSWORD);
+  return safeEqual(String(candidate ?? ''), ADMIN_PASSWORD);
+}
+
+/** Constant-time string comparison for tokens and passwords. */
+function safeEqual(given, expected) {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
@@ -152,12 +161,12 @@ function json(response, status, body) {
   response.end(payload);
 }
 
-async function readBody(request) {
+async function readBody(request, limit = MAX_BODY_BYTES) {
   let size = 0;
   const chunks = [];
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > MAX_BODY_BYTES) {
+    if (size > limit) {
       throw new Error('Payload too large');
     }
     chunks.push(chunk);
@@ -204,7 +213,41 @@ const server = createServer(async (request, response) => {
     }
 
     if (path === '/api/dashboard' && request.method === 'GET') {
-      return serveFile(response, join(DATA_DIR, 'dashboard.json'));
+      return serveFile(response, DASHBOARD_FILE);
+    }
+
+    if (path === '/api/dashboard' && request.method === 'POST') {
+      const token = request.headers['x-ingest-token'];
+      if (!INGEST_TOKEN || typeof token !== 'string' || !safeEqual(token, INGEST_TOKEN)) {
+        return json(response, 401, { error: 'Invalid ingest token' });
+      }
+      const body = await readBody(request, MAX_DASHBOARD_BYTES);
+      const missing = DASHBOARD_REQUIRED.filter((key) => body?.[key] === undefined || body[key] === null);
+      if (missing.length > 0) {
+        return json(response, 422, { error: `Snapshot is missing: ${missing.join(', ')}` });
+      }
+      const incoming = Date.parse(String(body.lastUpdatedAt));
+      if (Number.isNaN(incoming)) {
+        return json(response, 422, { error: 'Snapshot has an invalid lastUpdatedAt' });
+      }
+      // A PC that is behind on OneDrive sync must never overwrite fresher data.
+      try {
+        const existing = JSON.parse(await readFile(DASHBOARD_FILE, 'utf8'));
+        const current = Date.parse(String(existing.lastUpdatedAt));
+        if (Number.isFinite(current) && incoming <= current) {
+          return json(response, 409, {
+            error: 'Snapshot is older than the one already stored',
+            stored: existing.lastUpdatedAt,
+          });
+        }
+      } catch {
+        // No snapshot yet: accept the first upload.
+      }
+      await mkdir(DATA_DIR, { recursive: true });
+      const temporary = `${DASHBOARD_FILE}.tmp`;
+      await writeFile(temporary, `${JSON.stringify(body, null, 2)}\n`, 'utf8');
+      await rename(temporary, DASHBOARD_FILE);
+      return json(response, 200, { ok: true, stored: body.lastUpdatedAt });
     }
 
     if (path === '/api/login' && request.method === 'POST') {

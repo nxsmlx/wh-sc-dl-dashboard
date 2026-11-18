@@ -7,6 +7,7 @@ import { join, resolve } from 'node:path';
 const PORT = 8177;
 const BASE = `http://127.0.0.1:${PORT}`;
 const PASSWORD = 'test-pass-123';
+const INGEST_TOKEN = 'ingest-token-456';
 
 let child;
 let dataDir;
@@ -28,7 +29,7 @@ async function api(path, options = {}) {
 beforeAll(async () => {
   dataDir = await mkdtemp(join(tmpdir(), 'wh-admin-'));
   child = spawn('node', [resolve('server/index.mjs')], {
-    env: { ...process.env, ADMIN_PASSWORD: PASSWORD, PORT: String(PORT), DATA_DIR: dataDir },
+    env: { ...process.env, ADMIN_PASSWORD: PASSWORD, INGEST_TOKEN, PORT: String(PORT), DATA_DIR: dataDir },
     stdio: 'ignore',
     detached: false,
   });
@@ -81,6 +82,7 @@ describe('admin auth', () => {
   });
 });
 
+
 describe('admin state', () => {
   it('keeps a partial publish from clearing other controls', async () => {
     await api('/api/state', {
@@ -123,5 +125,74 @@ describe('admin state', () => {
     const saved = JSON.parse(await readFile(join(dataDir, 'state.json'), 'utf8'));
     expect(saved.forcedPage).toBe('delivery');
     expect(saved.notice.text).toBe('Saved');
+  });
+});
+
+describe('dashboard upload', () => {
+  const valid = {
+    lastUpdatedAt: '2026-11-18T01:39:18.000Z',
+    selectedMonth: '2026-10-01',
+    shipping: { lineCount: 14649, issueCount: 27 },
+    delivery: { oneDayResultPct: 97.1 },
+  };
+
+  it('rejects an upload without the ingest token', async () => {
+    const response = await fetch(`${BASE}/api/dashboard`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-ingest-token': 'wrong' },
+      body: JSON.stringify(valid),
+    });
+    expect(response.status).toBe(401);
+  });
+
+  it('rejects a payload that is not a dashboard snapshot', async () => {
+    const response = await fetch(`${BASE}/api/dashboard`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
+      body: JSON.stringify({ hello: 'world' }),
+    });
+    expect(response.status).toBe(422);
+    const body = await response.json();
+    expect(body.error).toMatch(/missing/i);
+  });
+
+  it('stores a valid snapshot and serves it back', async () => {
+    const post = await fetch(`${BASE}/api/dashboard`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
+      body: JSON.stringify(valid),
+    });
+    expect(post.status).toBe(200);
+
+    const served = await fetch(`${BASE}/api/dashboard`);
+    const body = await served.json();
+    expect(body.shipping.lineCount).toBe(14649);
+    expect(body.lastUpdatedAt).toBe('2026-11-18T01:39:18.000Z');
+  });
+
+  it('keeps serving the last good snapshot after a bad upload', async () => {
+    const bad = await fetch(`${BASE}/api/dashboard`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
+      body: JSON.stringify({ shipping: {} }),
+    });
+    expect(bad.status).toBe(422);
+
+    const served = await fetch(`${BASE}/api/dashboard`);
+    const body = await served.json();
+    expect(body.shipping.lineCount).toBe(14649);
+  });
+
+  it('refuses an older snapshot so a stale PC cannot overwrite fresher data', async () => {
+    const older = { ...valid, lastUpdatedAt: '2026-11-01T00:00:00.000Z' };
+    const response = await fetch(`${BASE}/api/dashboard`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-ingest-token': INGEST_TOKEN },
+      body: JSON.stringify(older),
+    });
+    expect(response.status).toBe(409);
+
+    const served = await fetch(`${BASE}/api/dashboard`);
+    expect((await served.json()).lastUpdatedAt).toBe('2026-11-18T01:39:18.000Z');
   });
 });
