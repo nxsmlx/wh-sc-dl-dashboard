@@ -47,7 +47,7 @@ switch ($status) {
 Write-Host '== 2. Write the credentials file =='
 New-Item -ItemType Directory -Force -Path $ConfDir | Out-Null
 # Single quotes: node --env-file keeps backslashes in the Windows path literal.
-@"
+$envText = @"
 WORKBOOK='$Workbook'
 INTERVAL_SECONDS=$IntervalSeconds
 INGEST_URL='$IngestUrl'
@@ -55,7 +55,9 @@ INGEST_TOKEN='$Token'
 INGEST_BASIC_AUTH='$BasicAuth'
 LOG_FILE='$ConfDir\workbook-watch.log'
 STATE_FILE='$ConfDir\watch-state.json'
-"@ | Set-Content -LiteralPath $EnvFile -Encoding utf8NoBOM
+"@
+# UTF-8 without BOM works on both Windows PowerShell 5.1 and PowerShell 7.
+[IO.File]::WriteAllText($EnvFile, $envText, (New-Object Text.UTF8Encoding $false))
 icacls $EnvFile /inheritance:r /grant:r "$($env:USERNAME):(R,W)" | Out-Null
 Write-Host "$EnvFile written (readable by $env:USERNAME only)."
 
