@@ -38,6 +38,45 @@ describe('App wallboard', () => {
     expect(screen.getByText('97.1', { selector: '.kpi-value' })).toBeInTheDocument();
   });
 
+  it('picks up a new workbook snapshot without a page reload', async () => {
+    vi.useFakeTimers();
+    const newer = {
+      ...demoSnapshot,
+      lastUpdatedAt: '2099-01-01T00:00:00.000Z',
+      shipping: { ...demoSnapshot.shipping, lineCount: 20_001 },
+    };
+    const load = vi.fn().mockResolvedValueOnce(demoSnapshot).mockResolvedValue(newer);
+    render(
+      <App dataSource={{ label: 'Test', load }} durationMs={3_600_000} remotePollMs={3_600_000} dataPollMs={60_000} />,
+    );
+    await flush();
+    expect(screen.getByText('14,650', { selector: '.kpi-value' })).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+    await flush();
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('20,001', { selector: '.kpi-value' })).toBeInTheDocument();
+  });
+
+  it('keeps the last good data when a background refresh fails', async () => {
+    vi.useFakeTimers();
+    const load = vi.fn().mockResolvedValueOnce(demoSnapshot).mockRejectedValue(new Error('offline'));
+    render(
+      <App dataSource={{ label: 'Test', load }} durationMs={3_600_000} remotePollMs={3_600_000} dataPollMs={60_000} />,
+    );
+    await flush();
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+    await flush();
+
+    expect(screen.getByText('14,650', { selector: '.kpi-value' })).toBeInTheDocument();
+  });
+
   it('does not switch pages before the 30-second boundary', async () => {
     vi.useFakeTimers();
     render(<App dataSource={createFixtureDataSource()} remotePollMs={60 * 60 * 1000} />);

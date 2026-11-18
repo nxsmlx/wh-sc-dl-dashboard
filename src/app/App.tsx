@@ -19,6 +19,8 @@ export interface AppProps {
   durationMs?: number;
   staleAfterMs?: number;
   remotePollMs?: number;
+  /** How often to re-read dashboard data; 0 turns it off. */
+  dataPollMs?: number;
 }
 
 export function App({
@@ -26,6 +28,7 @@ export function App({
   durationMs = ROTATION_DURATION_MS,
   staleAfterMs = 24 * 60 * 60 * 1000,
   remotePollMs,
+  dataPollMs = 60_000,
 }: AppProps) {
   const source = useMemo(() => dataSource ?? createDefaultDataSource(), [dataSource]);
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
@@ -85,6 +88,24 @@ export function App({
   useEffect(() => {
     void load();
   }, [load]);
+
+  // The wallboard stays open for days, so pick up new workbook uploads without
+  // a page reload. A failed refresh keeps the last good snapshot on screen.
+  useEffect(() => {
+    if (!dataPollMs) {
+      return undefined;
+    }
+    const timer = window.setInterval(() => {
+      source
+        .load()
+        .then((next) => {
+          setSnapshot((current) => (current?.lastUpdatedAt === next.lastUpdatedAt ? current : next));
+          setError(null);
+        })
+        .catch(() => undefined);
+    }, dataPollMs);
+    return () => window.clearInterval(timer);
+  }, [source, dataPollMs]);
 
   if (isLoading && !snapshot) {
     return stage(<DataState state="loading" />);
