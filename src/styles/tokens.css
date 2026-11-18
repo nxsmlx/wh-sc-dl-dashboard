@@ -1,41 +1,61 @@
 /*
- * Warehouse operations board tokens. Colour carries meaning, never decoration:
- *   --chrome   steel blue: structure (tabs, rotation progress, chart lines, bars)
- *   --live     cyan: the one live state (current page, "now")
+ * Glass operations board tokens. Colour carries meaning, never decoration:
+ *   --chrome   indigo/violet: structure (selected tab, chart lines, bars, icons)
+ *   --live     aqua: the one live state (current page, rotation progress, latest value)
  *   --success / --warning / --danger: operational status only
  * Amber is reserved for warning so a warning never blends into the frame.
+ * The aurora glow behind the glass is ambient only and never encodes data.
  */
 :root {
   color-scheme: dark;
 
-  --font-ui: 'Barlow', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-ui: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
 
-  --bg: #061430;
-  --surface: rgb(16 44 92 / 0.5);
-  --surface-strong: rgb(19 52 106 / 0.72);
-  --surface-sheen: rgb(255 255 255 / 0.07);
-  --bar-bg: rgb(6 22 52 / 0.82);
-  --glow-a: rgb(36 108 205 / 0.3);
-  --glow-b: rgb(14 70 150 / 0.32);
+  --bg: #060918;
+  --aurora-a: rgb(110 86 255 / 0.42);
+  --aurora-b: rgb(20 210 200 / 0.26);
+  --aurora-c: rgb(56 110 255 / 0.3);
+  --aurora-d: rgb(236 72 153 / 0.12);
+  --grid-line: rgb(255 255 255 / 0.035);
 
-  --ink: #f2f6fd;
-  --ink-muted: #b5c6e4;
-  --ink-faint: #8299c2;
-  --rule: rgb(132 178 248 / 0.2);
-  --rule-strong: rgb(160 200 255 / 0.36);
+  --glass: rgb(22 28 64 / 0.46);
+  --glass-strong: rgb(30 38 84 / 0.62);
+  --glass-soft: rgb(255 255 255 / 0.05);
+  --glass-border: rgb(255 255 255 / 0.12);
+  --glass-highlight: rgb(255 255 255 / 0.2);
+  --glass-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.25);
+  --glass-blur: blur(26px) saturate(150%);
 
-  --chrome: #7fb2ff;
-  --live: #3fd0ff;
+  --bar-bg: rgb(12 16 42 / 0.72);
+  --bar-ink: #f5f7ff;
+  --bar-ink-muted: #b4bbdc;
+  --bar-border: rgb(255 255 255 / 0.12);
 
-  --success: #2fd27a;
-  --success-ink: #022412;
-  --warning: #ffb21f;
-  --warning-ink: #2b1a00;
-  --danger: #ff5b52;
-  --danger-ink: #2c0402;
+  --ink: #f5f7ff;
+  --ink-muted: #b4bbdc;
+  --ink-faint: #8f97bd;
+  --rule: rgb(255 255 255 / 0.09);
+  --rule-strong: rgb(255 255 255 / 0.18);
+  --track: rgb(255 255 255 / 0.08);
+
+  --chrome: #8f8cff;
+  --chrome-2: #b49bff;
+  --live: #33e6d4;
+  --on-accent: #070b22;
+
+  --success: #34e39a;
+  --success-ink: #022615;
+  --warning: #ffc53d;
+  --warning-ink: #2b1b00;
+  --danger: #ff5c7a;
+  --danger-ink: #2e0410;
 
   --accent: var(--chrome);
+
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -48,33 +68,50 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  --bg: #e9eef6;
-  --surface: rgb(255 255 255 / 0.74);
-  --surface-strong: rgb(255 255 255 / 0.9);
-  --surface-sheen: rgb(255 255 255 / 0.9);
-  --bar-bg: #0b2a5c;
-  --glow-a: rgb(96 150 230 / 0.22);
-  --glow-b: rgb(150 185 235 / 0.28);
+  --bg: #eef1fb;
+  --aurora-a: rgb(124 104 255 / 0.3);
+  --aurora-b: rgb(45 212 191 / 0.26);
+  --aurora-c: rgb(96 150 255 / 0.28);
+  --aurora-d: rgb(244 114 182 / 0.16);
+  --grid-line: rgb(20 24 70 / 0.04);
 
-  --ink: #0d1b33;
-  --ink-muted: #3d4f6d;
-  --ink-faint: #5d6e8c;
-  --rule: rgb(13 27 51 / 0.12);
-  --rule-strong: rgb(13 27 51 / 0.22);
+  --glass: rgb(255 255 255 / 0.58);
+  --glass-strong: rgb(255 255 255 / 0.8);
+  --glass-soft: rgb(20 24 70 / 0.04);
+  --glass-border: rgb(255 255 255 / 0.85);
+  --glass-highlight: rgb(255 255 255 / 0.95);
+  --glass-shadow: 0 24px 50px -28px rgb(40 46 120 / 0.35), 0 2px 6px rgb(40 46 120 / 0.08);
 
-  --chrome: #1f5fc4;
-  --live: #0277b8;
+  --ink: #12163a;
+  --ink-muted: #474f7a;
+  --ink-faint: #5f6792;
+  --rule: rgb(18 22 58 / 0.09);
+  --rule-strong: rgb(18 22 58 / 0.18);
+  --track: rgb(18 22 58 / 0.08);
 
-  --success: #13804a;
+  --chrome: #5b4cf0;
+  --chrome-2: #8b5cf6;
+  --live: #0b978e;
+  --on-accent: #ffffff;
+
+  --success: #0e8a57;
   --success-ink: #ffffff;
-  --warning: #b36a00;
+  --warning: #a86200;
   --warning-ink: #ffffff;
-  --danger: #c62a22;
+  --danger: #d21f4a;
   --danger-ink: #ffffff;
 }
 
-/* The top bar stays navy in both themes, so its text uses its own fixed ink. */
+/* The top bar stays deep navy in both themes, so it keeps its own fixed ink and accents. */
 .rail-top {
-  --bar-ink: #f2f6fd;
-  --bar-ink-muted: #b5c6e4;
+  --bar-bg: rgb(12 16 42 / 0.78);
+  --bar-ink: #f5f7ff;
+  --bar-ink-muted: #b4bbdc;
+  --bar-border: rgb(255 255 255 / 0.12);
+  --bar-live: #33e6d4;
+  --bar-chrome: #8f8cff;
+}
+
+[data-theme='light'] .rail-top {
+  --bar-bg: rgb(18 22 62 / 0.92);
 }

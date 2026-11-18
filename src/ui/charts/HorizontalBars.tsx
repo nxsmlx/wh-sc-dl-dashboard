@@ -26,13 +26,16 @@ export function HorizontalBars({
             const isAlert = belowIsAlert !== undefined && point.value < belowIsAlert;
             return (
               <li key={point.label} className="bar-row" data-tone={isAlert ? 'danger' : undefined}>
-                <span className="bar-label">{point.label}</span>
+                <span className="bar-name">
+                  <span className="bar-label">{point.label}</span>
+                  {isAlert ? <span className="bar-flag">Below</span> : null}
+                </span>
+                <span className="bar-track" aria-hidden="true">
+                  <span className="bar-fill" style={{ width: `${Math.max(point.value > 0 ? 2 : 0, (point.value / max) * 100)}%` }} />
+                </span>
                 <span className="bar-value">
                   {point.value.toFixed(decimals)}
                   {suffix}
-                </span>
-                <span className="bar-track" aria-hidden="true">
-                  <span className="bar-fill" style={{ width: `${(point.value / max) * 100}%` }} />
                 </span>
               </li>
             );

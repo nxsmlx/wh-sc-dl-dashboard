@@ -1,13 +1,14 @@
+import { useId } from 'react';
 import type { SeriesPoint } from '../../data/types';
 
-const WIDTH = 600;
-const HEIGHT = 260;
-const PAD_X = 40;
-const PAD_TOP = 40;
-const PAD_BOTTOM = 34;
+const WIDTH = 640;
+const HEIGHT = 250;
+const PAD_X = 44;
+const PAD_TOP = 46;
+const PAD_BOTTOM = 36;
 
 /**
- * Line chart with every value printed on the chart, so nothing depends on hover.
+ * Area-line chart with every value printed on the chart, so nothing depends on hover.
  * Values are spread across the plot height by design; the printed numbers carry the scale.
  */
 export function TrendLine({
@@ -23,6 +24,8 @@ export function TrendLine({
   target?: number;
   formatValue?: (value: number) => string;
 }) {
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
+
   if (points.length === 0) {
     return (
       <figure className="trend-chart" aria-label={`${title}: no data`}>
@@ -36,11 +39,14 @@ export function TrendLine({
   const min = Math.min(...scaleValues);
   const max = Math.max(...scaleValues);
   const span = max - min || 1;
-  const plotHeight = HEIGHT - PAD_TOP - PAD_BOTTOM;
-  const y = (value: number) => PAD_TOP + (1 - (value - min) / span) * plotHeight;
+  const baseline = HEIGHT - PAD_BOTTOM;
+  const plotHeight = baseline - PAD_TOP;
+  const y = (value: number) => PAD_TOP + (1 - (value - min) / span) * plotHeight * 0.86;
   const x = (index: number) =>
     points.length === 1 ? WIDTH / 2 : PAD_X + (index / (points.length - 1)) * (WIDTH - PAD_X * 2);
   const coords = points.map((point, index) => ({ x: x(index), y: y(point.value) }));
+  const line = coords.map((point) => `${point.x},${point.y}`).join(' ');
+  const area = `M${coords[0].x},${baseline} L${line.replace(/ /g, ' L')} L${coords[coords.length - 1].x},${baseline} Z`;
   const first = points[0];
   const last = points[points.length - 1];
   const summary = `${title}: ${first.label} ${formatValue(first.value)}${suffix} to ${last.label} ${formatValue(last.value)}${suffix}`;
@@ -48,20 +54,34 @@ export function TrendLine({
   return (
     <figure className="trend-chart" aria-label={summary}>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} preserveAspectRatio="xMidYMid meet">
-        <line className="grid-line" x1={PAD_X} x2={WIDTH - PAD_X} y1={HEIGHT - PAD_BOTTOM} y2={HEIGHT - PAD_BOTTOM} />
+        <defs>
+          <linearGradient id={`area-${uid}`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--chrome)" stopOpacity="0.42" />
+            <stop offset="100%" stopColor="var(--chrome)" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id={`stroke-${uid}`} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="var(--chrome)" />
+            <stop offset="100%" stopColor="var(--live)" />
+          </linearGradient>
+        </defs>
+        {coords.map((point, index) => (
+          <line key={`g-${points[index].label}`} className="grid-line" x1={point.x} x2={point.x} y1={PAD_TOP - 10} y2={baseline} />
+        ))}
+        <line className="grid-line baseline" x1={PAD_X - 20} x2={WIDTH - PAD_X + 20} y1={baseline} y2={baseline} />
+        <path d={area} fill={`url(#area-${uid})`} />
         {target !== undefined ? (
           <>
-            <line className="target-line" x1={PAD_X} x2={WIDTH - PAD_X} y1={y(target)} y2={y(target)} />
-            <text className="target-label" x={WIDTH - PAD_X} y={y(target) - 8} textAnchor="end">
+            <line className="target-line" x1={PAD_X - 20} x2={WIDTH - PAD_X + 20} y1={y(target)} y2={y(target)} />
+            <text className="target-label" x={WIDTH - PAD_X + 20} y={y(target) + 24} textAnchor="end">
               Target {formatValue(target)}
               {suffix}
             </text>
           </>
         ) : null}
         <polyline
-          points={coords.map((point) => `${point.x},${point.y}`).join(' ')}
+          points={line}
           fill="none"
-          stroke="var(--chrome)"
+          stroke={`url(#stroke-${uid})`}
           strokeWidth="4"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -70,11 +90,18 @@ export function TrendLine({
           const isLast = index === coords.length - 1;
           return (
             <g key={points[index].label}>
-              <circle cx={point.x} cy={point.y} r={isLast ? 8 : 5} fill={isLast ? 'var(--live)' : 'var(--chrome)'} />
-              <text className="point-label" data-last={isLast} x={point.x} y={point.y - 16} textAnchor="middle">
+              {isLast ? <circle className="point-halo" cx={point.x} cy={point.y} r={16} /> : null}
+              <circle
+                className="point-dot"
+                data-last={isLast}
+                cx={point.x}
+                cy={point.y}
+                r={isLast ? 8 : 6}
+              />
+              <text className="point-label" data-last={isLast} x={point.x} y={point.y - 18} textAnchor="middle">
                 {formatValue(points[index].value)}
               </text>
-              <text className="axis-label" x={point.x} y={HEIGHT - 8} textAnchor="middle">
+              <text className="axis-label" data-last={isLast} x={point.x} y={HEIGHT - 6} textAnchor="middle">
                 {points[index].label}
               </text>
             </g>

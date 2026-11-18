@@ -18,7 +18,7 @@ export function DataState({
   };
 
   return (
-    <section className="data-state" aria-live="polite" data-state={state}>
+    <section className="data-state glass" aria-live="polite" data-state={state}>
       <h2>{title[state]}</h2>
       <p>
         {message ??
@@ -32,7 +32,7 @@ export function DataState({
         </p>
       ) : null}
       {onRetry ? (
-        <button type="button" className="theme-toggle" onClick={onRetry}>
+        <button type="button" className="pill-button" onClick={onRetry}>
           Retry
         </button>
       ) : null}

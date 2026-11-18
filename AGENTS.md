@@ -39,9 +39,9 @@
 ## UI rules
 
 - Fixed 1920×1080 stage: KPI row + panel grid. No panel may overflow and no text may be below 18px (it is read from 3–6 m).
-- Colour roles in `src/styles/tokens.css`: steel blue = structure, cyan = live state, green/amber/red = status only. Do not use amber for chrome.
+- Colour roles in `src/styles/tokens.css`: indigo/violet = structure, aqua = live state, green/amber/rose = status only. Do not use amber for chrome; the aurora background is ambient decoration and never encodes data.
 - Status is an icon plus a word (`StatusChip`), never colour alone. KPI targets come from the workbook `Lists` sheet; do not invent targets.
-- Dark is the default wallboard theme; light must stay available, persist per device, and keep the navy top bar.
+- Dark is the default wallboard theme; light must stay available, persist per device, and keep the deep navy glass top bar.
 - Numbers use `tabular-nums`; charts print every value and must be readable without hover.
 - `.gitignore` ignores `/data` (server runtime data) only; `src/data/` is source and must stay tracked.
 

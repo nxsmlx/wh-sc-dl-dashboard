@@ -1,41 +1,18 @@
-/* Barlow and Barlow Condensed, SIL Open Font License 1.1 (see src/assets/fonts/OFL-Barlow.txt).
-   Bundled so the smartboard never falls back to a font with different figure widths. */
+/* Manrope (UI text) and Space Grotesk (figures and headings), SIL Open Font License 1.1
+   (see src/assets/fonts/OFL-*.txt). Variable fonts, bundled so the smartboard never falls
+   back to a font with different figure widths and works with no network. */
 @font-face {
-  font-family: 'Barlow Condensed';
+  font-family: 'Manrope';
   font-style: normal;
-  font-weight: 600;
+  font-weight: 200 800;
   font-display: block;
-  src: url('../assets/fonts/barlow-condensed-latin-600-normal.woff2') format('woff2');
+  src: url('../assets/fonts/manrope-latin-wght-normal.woff2') format('woff2-variations');
 }
 
 @font-face {
-  font-family: 'Barlow Condensed';
+  font-family: 'Space Grotesk';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 300 700;
   font-display: block;
-  src: url('../assets/fonts/barlow-condensed-latin-700-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Barlow Condensed';
-  font-style: normal;
-  font-weight: 800;
-  font-display: block;
-  src: url('../assets/fonts/barlow-condensed-latin-800-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Barlow';
-  font-style: normal;
-  font-weight: 500;
-  font-display: block;
-  src: url('../assets/fonts/barlow-latin-500-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Barlow';
-  font-style: normal;
-  font-weight: 600;
-  font-display: block;
-  src: url('../assets/fonts/barlow-latin-600-normal.woff2') format('woff2');
+  src: url('../assets/fonts/space-grotesk-latin-wght-normal.woff2') format('woff2-variations');
 }
